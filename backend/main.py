@@ -3,8 +3,17 @@ from pydantic import BaseModel
 from game import is_valid_word, calculate_score
 import random
 import uuid
+from datetime import datetime, timedelta
+from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3000"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # justputting placeholder list of 6 letter words for nwo - later maybe will pull forom a dictionary or smth?
 WORDS=[
@@ -43,8 +52,10 @@ def new_anagram_game():
     random.shuffle(letters)
     game_id=str(uuid.uuid4())[:6]
     games[game_id]={
+        "answer": word,
         "letters": letters,
         "time_limit": 60,
+        "started_at": datetime.now(),
         "players": {}
     }
     return {
@@ -63,10 +74,19 @@ def check_word(submission: WordSubmission):
     if submission.game_id not in games:
         return{
             "valid": False,
-            "message": "Game not found."
+            "message": "Game not found.",
+            "points": 0
         }
 
     game = games[submission.game_id]
+    elapsed = datetime.now() - game["started_at"]
+    if elapsed> timedelta(seconds=game["time_limit"]):
+        return{
+            "valid":False,
+            "message": "time's up!!",
+            "points": 0
+        }
+
     word = submission.word.strip().lower()
     player_id = submission.player_id
 
