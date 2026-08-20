@@ -8,6 +8,8 @@ export default function Home() {
   const [score, setScore] = useState(0);
   const [message, setMessage] = useState("");
   const [timeLeft, setTimeLeft] = useState(60);
+  const [endTime, setEndTime] = useState<number | null>(null);
+  const [usedLetters, setUsedLetters] = useState<number[]>([]);
 
   async function startGame() {
     const response= await fetch(`${API_URL}/game/anagrams/new`);
@@ -16,12 +18,18 @@ export default function Home() {
     setGameId(data.game_id);
     setLetters(data.letters);
     setTimeLeft(data.time_limit);
+    setEndTime(Date.now() + data.time_limit*1000);
     setScore(0);
     setWord("");
     setMessage("");
+    setUsedLetters([]);
   }
 
   async function submitWord() {
+    if(timeLeft<=0){
+      setMessage("Time's up!");
+      return;
+    }
     if(!word.trim()) {
       return;
     }
@@ -50,14 +58,20 @@ export default function Home() {
     startGame();
   }, []);
   useEffect(() => {
-    if(timeLeft<=0){
+    if(endTime===null){
       return;
     }
     const timer=setInterval(()=>{
-      setTimeLeft((current)=>current-1);
-    }, 100);
+      const remaining=Math.max(0,
+        Math.ceil((endTime-Date.now()) / 1000)
+      );
+      setTimeLeft(remaining);
+      if(remaining===0){
+        clearInterval(timer);
+      }
+    }, 250);
     return () => clearInterval(timer);
-  }, [timeLeft]);
+  }, [endTime]);
 
   return(
     <main>
@@ -66,12 +80,38 @@ export default function Home() {
       <p>Score: {score}</p>
       <div>
         {letters.map((letter, index)=>(
-          <button key={index}>
+          <button 
+            key={index}
+            disabled={timeLeft<=0||usedLetters.includes(index)}
+            onClick={()=>{
+              setWord(word+letter);
+              setUsedLetters([...usedLetters, index]);
+            }}
+          >
             {letter.toUpperCase()}
           </button>
         ))}
+         <button onClick={()=>{
+            if(word.length===0) return;
+            setWord(word.slice(0,-1));
+            setUsedLetters(usedLetters.slice(0,-1));
+          }}
+          disabled={timeLeft<=0||word.length===0}
+          >
+            ←
+          </button>
+          <button
+            onClick={()=>{
+              setWord("");
+              setUsedLetters([]);
+            }}
+            disabled={timeLeft<=0||word.length===0}
+          >
+            clear
+          </button>
       </div>
       <input
+        disabled={timeLeft<=0}
         value={word}
         onChange={(event)=>setWord(event.target.value)}
         onKeyDown={(event)=>{
@@ -81,10 +121,13 @@ export default function Home() {
         }}
         placeholder="type a word..."
       />
-      <button onClick={submitWord}>
+      <button onClick={submitWord} disabled={timeLeft<=0}>
         submit
       </button>
       <p>{message}</p>
+      <button onClick={startGame}>
+        New Game
+      </button>
     </main>
-  )
+  );
 }
