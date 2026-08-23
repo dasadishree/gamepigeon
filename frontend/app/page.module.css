@@ -1,0 +1,260 @@
+.page{
+    min-height: 100vh;
+    background: #d8c9f2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 35px 20px 50px;
+    font-family: Arial, Helvetica, sans-serif;
+    color: #302044;
+    box-sizing: border-box;
+}
+
+.header{ 
+    width: min(700px, 100%);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+}
+
+.header h1{
+    margin: 0;
+    font-size: 38px;
+    font-weight: 900;
+    letter-spacing: -1.5px;
+}
+
+.timer{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    line-height: 1;
+}
+
+.timer span{
+    font-size: 13px;
+    font-weight: 700;
+    text-transform: uppercase;
+    opacity: 0.65;
+    margin-bottom: 4px;
+}
+
+.timer strong{
+    font-size: 30px;
+    font-weight: 900;
+}
+
+.scoreNote{
+    position: relative;
+    width: 230px;
+    min-height: 110px;
+    background: #fff;
+    box-shadow: 0 7px 15px rgba(55,35,80,0.18);
+    transform: rotate(-2deg);
+    margin-bottom: 35px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.noteText{
+    font-size: 20px;
+    line-height: 1.6;
+    font-weight: 900;
+    color: #111;
+    text-align: center;
+}
+.noteText span{
+    font-size: 25px;
+}
+
+.pin{
+    position: absolute;
+    top: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 17px;
+    height: 17px;
+    border-radius: 50%;
+    background: #7b3f91;
+    box-shadow: 0 3px 4px rgba(0,0,0,0.25);
+}
+.pin::after{
+    content: "";
+    position: absolute;
+    top: 13px;
+    left: 7px;
+    width: 3px;
+    height: 15px;
+    background: #555;
+    transform: rotate(8deg);
+}
+.wordArea{
+    display: flex;
+    gap:8px;justify-content: center;
+    flex-wrap:wrap;
+    min-height: 68px;
+    margin-bottom: 15px;
+}
+.wordSlot{
+    width:55px;
+    height:55px;
+    border-radius: 9px;
+    background: #4d3272;
+    box-shadow: inset 0 3px 0 rgba(255, 255, 255, 0.08), 0 4px 7px rgba(49,28,77,0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white; 
+    font-size: 27px;
+    font-weight: 900;
+}
+.filledSlot{
+    background: #b98555;
+    color: #fff;
+    box-shadow: inset 0 2px 0 rgba(255,255,255,0.25)
+}
+
+.message{
+    height: 28px;
+    font-size: 16px;
+    font-weight: 800;
+    margin-bottom: 18px;
+}
+.letterArea{
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    max-width: 600px;
+    margin-bottom: 22px;
+}
+.letterTile{
+    width: 64px;
+    height: 64px;
+    border: none; 
+    border-radius: 10px;
+    background: #bf8b5a;
+    color: #fff;
+    font-size: 29px;
+    font-weight: 900;
+    cursor: pointer;
+    box-shadow: inset 0 3px 0 rgba(255,255,255,0.2), inset 0 -4px 0 rgba(80,45,20,0.2), 0 5px 8px rgba(70,45,35,0.25);
+    transition: transform 0.08s ease, filter 0.1s easel;
+}
+.letterTile:hover:not(:disabled){
+    filter: brightness(1.07);
+    transform: translateY(-2px);
+}
+.letterTile:active:not(:disabled){
+    transform: translateY(2px);
+}
+.usedTile{
+    opacity:0.3;
+    transform: translateY(3px);
+}
+
+.inputArea{
+    width: min(600px, 100%);
+    display:flex;
+    gap:8px;
+    margin-bottom:14px;
+}
+.wordInput{
+    flex: 1;
+    height: 50px;
+    border: none;
+    border-radius: 10px;
+    padding: 0 16px;
+    background: white;
+    font-size: 18px;
+    font-weight: 700;
+    color: #302044;
+    outline: none;
+    box-shadow: 0 3px 8px rgba(60, 40, 90, 0.15);
+}
+.wordInput:focus{
+    box-shadow: 0 0 0 3px rgba(91,55,126,0.25), 0 3px 8px rgba(60,40,90,0.15);
+}
+.wordInput::placeholder{
+    color: #a095ac;
+}
+.backButton, .clearButton{
+    height: 50px;
+    border: none;
+    border-radius: 10px;
+    background: #6c4c91;
+    color: white;
+    font-size: 16px;
+    font-weight: 800;
+    padding: 0 16px;
+    cursor: pointer;
+}
+.backButton:hover:not(:disabled), .clearButton:hover:not(:disabled){
+    background: #5d3f80;
+}
+
+.submitButton{
+    width: min(600px, 100%);
+    height: 55px;
+    border: none;
+    border-radius: 12px;
+    background: #4b2f70;
+    color: white;
+    font-size: 19px;
+    font-weight: 900;
+    cursor: pointer;
+    box-shadow: 0 5px 0 #35204f, 0 8px 12px rgba(50,30,70,0.2);
+    margin-bottom: 18px;
+}
+
+.submitButton:active:not(:disabled){
+    transform: translateY(4px);
+    box-shadow: 0 1px 0 #35204f, 0 4px 7px rgba(50,30,70,0.2);
+}
+.newGameButton{
+    border: none;
+    background: transparent;
+    color: #4b2f70;
+    font-size: 15px;
+    font-weight: 900;
+    cursor: pointer;
+}
+.newGameButton:hover{
+    text-decoration: underline;
+}
+button:disabled, input:disabled{
+    cursor: not-allowed;
+}
+.submitButton:disabled, .backButton:disabled, .clearButton:disabled{
+    opacity: 0.45;
+}
+.wordInput:disabled{
+    opacity: 0.65;
+}
+
+@media (max-width: 600px){
+    .page{
+        padding: 25px 14px 40px;
+    }
+    .header h1{
+        font-size: 32px;
+    }
+    .timer strong{
+        font-size: 25px;
+    }
+    .scoreNote{
+        width: 200px;
+        min-height: 95px;
+    }
+    .wordSlot{
+        width: 45px;
+        height: 45px;
+        font-size:23px;
+    }
+    .letterTile{
+        width: 56px;
+        height:56px;
+        font-size: 25px;
+    }
+}
