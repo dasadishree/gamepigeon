@@ -10,26 +10,21 @@
     box-sizing: border-box;
 }
 
-.header{ 
-    width: min(700px, 100%);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 25px;
-}
-
-.header h1{
-    margin: 0;
-    font-size: 38px;
-    font-weight: 900;
-    letter-spacing: -1.5px;
-}
-
 .timer{
+    position: absolute;
+    top: 25px;
+    right: 28px;
+    background: #4b2f70;
+    color: white;
+    min-width: 72px;
+    height:42px;
+    border-radius:22px;
     display: flex;
-    flex-direction: column;
     align-items: center;
-    line-height: 1;
+    justify-content: center;
+    font-size:22px;
+    font-weight:900;
+    box-shadow: 0 4px 8px rgba(50,30,70,0.22);
 }
 
 .timer span{
@@ -47,87 +42,105 @@
 
 .scoreNote{
     position: relative;
-    width: 230px;
-    min-height: 110px;
+    width: 390px;
+    min-height: 145px;
     background: #fff;
-    box-shadow: 0 7px 15px rgba(55,35,80,0.18);
-    transform: rotate(-2deg);
-    margin-bottom: 35px;
+    margin-top:55px;
+    margin-bottom: 25px;
+    display: flex;
+    align-items: center;
+    padding: 25px 30px;
+    box-sizing: border-box;
+    box-shadow: 0 8px 15px rgba(55,35,80,0.18);
+    justify-content: center;
+    clip-path: polygon(
+        1% 4%,
+        96% 0%,
+        99% 12%,
+        97% 29%,
+        100% 47%,
+        97% 66%,
+        99% 84%,
+        95% 100%,
+        75% 97%,
+        56% 100%,
+        38% 97%,
+        20% 100%,
+        3% 96%,
+        1% 78%,
+        3% 59%,
+        0% 40%,
+        3% 20%
+    );
+}
+
+.avatar{
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    background: #f3c96b;
+    border: 4px solid #302044;
     display: flex;
     align-items: center;
     justify-content: center;
+    font-size: 38px;
+    flex-shrink: 0;
+    margin-right: 25px;
 }
 .noteText{
-    font-size: 20px;
-    line-height: 1.6;
-    font-weight: 900;
     color: #111;
-    text-align: center;
+    font-weight: 900;
 }
-.noteText span{
-    font-size: 25px;
+.wordsText{
+    font-size: 19px;
+    margin-bottom: 7px;
+}
+.scoreText{
+    font-size: 34px;
+    line-height: 1;
 }
 
-.pin{
-    position: absolute;
-    top: -10px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 17px;
-    height: 17px;
-    border-radius: 50%;
-    background: #7b3f91;
-    box-shadow: 0 3px 4px rgba(0,0,0,0.25);
-}
-.pin::after{
-    content: "";
-    position: absolute;
-    top: 13px;
-    left: 7px;
-    width: 3px;
-    height: 15px;
-    background: #555;
-    transform: rotate(8deg);
-}
 .wordArea{
     display: flex;
-    gap:8px;justify-content: center;
-    flex-wrap:wrap;
-    min-height: 68px;
+    gap:10px;
+    justify-content: center;
+    min-height: 64px;
     margin-bottom: 15px;
 }
 .wordSlot{
-    width:55px;
-    height:55px;
-    border-radius: 9px;
+    width:64px;
+    height:64px;
+    border-radius: 10px;
     background: #4d3272;
-    box-shadow: inset 0 3px 0 rgba(255, 255, 255, 0.08), 0 4px 7px rgba(49,28,77,0.2);
+    box-shadow: inset 0 3px 0 rgba(255, 255, 255, 0.08), 
+    0 5px 8px rgba(49,28,77,0.2);
     display: flex;
     align-items: center;
     justify-content: center;
     color: white; 
-    font-size: 27px;
+    font-size: 29px;
     font-weight: 900;
+    box-sizing: border-boxl
 }
 .filledSlot{
     background: #b98555;
-    color: #fff;
-    box-shadow: inset 0 2px 0 rgba(255,255,255,0.25)
+    box-shadow: inset 0 2px 0 rgba(255,255,255,0.25), 0 5px 8px rgba(70, 45, 35, 0.25);
 }
 
 .message{
     height: 28px;
-    font-size: 16px;
-    font-weight: 800;
-    margin-bottom: 18px;
+    font-size: 17px;
+    font-weight: 900;
+    margin-bottom: 8px;
+    color: #4b2f70;
 }
 .letterArea{
     display: flex;
     justify-content: center;
-    flex-wrap: wrap;
     gap: 10px;
     max-width: 600px;
-    margin-bottom: 22px;
+    margin-top: auto;
+    margin-bottom: 18px;
 }
 .letterTile{
     width: 64px;
@@ -158,7 +171,7 @@
     width: min(600px, 100%);
     display:flex;
     gap:8px;
-    margin-bottom:14px;
+    margin-bottom:10px;
 }
 .wordInput{
     flex: 1;
@@ -174,7 +187,8 @@
     box-shadow: 0 3px 8px rgba(60, 40, 90, 0.15);
 }
 .wordInput:focus{
-    box-shadow: 0 0 0 3px rgba(91,55,126,0.25), 0 3px 8px rgba(60,40,90,0.15);
+    box-shadow: 0 0 0 3px rgba(91,55,126,0.25), 
+    0 3px 8px rgba(60,40,90,0.15);
 }
 .wordInput::placeholder{
     color: #a095ac;
@@ -190,10 +204,27 @@
     padding: 0 16px;
     cursor: pointer;
 }
-.backButton:hover:not(:disabled), .clearButton:hover:not(:disabled){
+.backButton:hover:not(:disabled), 
+.clearButton:hover:not(:disabled){
     background: #5d3f80;
 }
-
+.enterButton{
+    width: min(600px, 100%);
+    height: 48px;
+    border: none;
+    border-radius: 11px;
+    background: #4b2f70;
+    color: white;
+    font-size: 18px;
+    font-weight: 900;
+    cursor: pointer;
+    margin-bottom: 12px;
+    box-shadow: 0 4px 0 #35204f, 0 6px 10px rgba(50,30,70,0.2);
+}
+.enterButton:active:not(:disabled){
+    transform: translateY(3px);
+    box-shadow: 0 1px 0 #35204f, 0 3px 6px rgba(50,30,70,0.2);
+}
 .submitButton{
     width: min(600px, 100%);
     height: 55px;
@@ -212,21 +243,10 @@
     transform: translateY(4px);
     box-shadow: 0 1px 0 #35204f, 0 4px 7px rgba(50,30,70,0.2);
 }
-.newGameButton{
-    border: none;
-    background: transparent;
-    color: #4b2f70;
-    font-size: 15px;
-    font-weight: 900;
-    cursor: pointer;
-}
-.newGameButton:hover{
-    text-decoration: underline;
-}
 button:disabled, input:disabled{
     cursor: not-allowed;
 }
-.submitButton:disabled, .backButton:disabled, .clearButton:disabled{
+.enterButton:disabled, .backButton:disabled, .clearButton:disabled{
     opacity: 0.45;
 }
 .wordInput:disabled{
@@ -235,26 +255,41 @@ button:disabled, input:disabled{
 
 @media (max-width: 600px){
     .page{
-        padding: 25px 14px 40px;
+        padding: 20px 12px 25px;
     }
-    .header h1{
-        font-size: 32px;
-    }
-    .timer strong{
-        font-size: 25px;
+    .timer{
+        top: 15px;
+        right: 15px;
+        min-width: 65px;
+        height: 38px;
+        font-size: 19px;
     }
     .scoreNote{
-        width: 200px;
-        min-height: 95px;
+        width: min(390px, 90%);
+        min-height: 125px;
+        margin-top: 45px;
     }
-    .wordSlot{
-        width: 45px;
-        height: 45px;
-        font-size:23px;
+    .avatar{
+        width: 58px;
+        height: 58px;
+        font-size: 30px;
+        margin-right: 18px;
     }
-    .letterTile{
-        width: 56px;
-        height:56px;
-        font-size: 25px;
+    .scoreText{
+        font-size: 28px;
+    }
+    .wordsText{
+        font-size: 17px;
+    }
+    .wordArea{
+        gap: 7px;
+    }
+    .wordSlot, .letterTile{
+        width: 48px;
+        height: 48px;
+        font-size: 23px;
+    }
+    .letterArea{
+        gap: 7px;
     }
 }

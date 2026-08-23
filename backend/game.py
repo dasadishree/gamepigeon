@@ -16,15 +16,14 @@ def is_valid_word(word, letters):
 
 def calculate_score(word):
     length = len(word)
-    if length<3:
-        return 0
-    elif length==3:
-        return 1
-    elif length==4:
-        return 2
+
+    if length==6:
+        return 2000
     elif length==5:
-        return 4
-    elif length==6:
-        return 7
-    
-    return 0
+        return 1200
+    elif length==4:
+        return 400
+    elif length==3:
+        return 100
+    else:
+        return 0

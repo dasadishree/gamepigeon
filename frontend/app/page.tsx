@@ -83,6 +83,14 @@ export default function Home() {
     setUsedLetters([]);
   }
 
+  function formatTime(seconds: number){
+    const minutes = Math.floor(seconds/60);
+    const remainingSeconds = seconds%60;
+    return `${minutes}:${remainingSeconds
+      .toString()
+      .padStart(2, "0")}`;
+  }
+
   useEffect(()=> {
     startGame();
   }, []);
@@ -108,46 +116,82 @@ export default function Home() {
 
   return(
     <main className={styles.page}>
-      <div className={styles.header}>
-        <h1>anagrams</h1>
-        <div className={styles.timer}>
-          <span>Time</span>
-          <strong>{timeLeft}</strong>
-        </div>
+      <div className={styles.timer}>
+        {formatTime(timeLeft)}
       </div>
       
       <div className={styles.scoreNote}>
-        <div className={styles.pin}></div>
+        <div className={styles.avatar}>🤑</div>
         <div className={styles.noteText}>
-          <div>
-            Score: <span>{score}</span>
+          <div className={styles.wordsTest}>
+            WORDS: {wordsFound}
           </div>
-          <div>
-            Words: <span>{wordsFound}</span>
+
+          <div className={styles.scoreText}>
+            SCORE: {score.toString().padStart(4, "0")}
           </div>
         </div>
-      </div>
-
-      <div className={styles.wordArea}>
-        {letters.map((_, index) => {
-          const letterIndex = usedLetters.indexOf(index);
-          return(
-            <div
-              key={index}
-              className={`${styles.wordSlot} ${
-                letterIndex !== -1 ? styles.filledSlot : ""
-              }`}
-            >
-              {letterIndex !== -1
-              ? word[letterIndex].toUpperCase()
-              : ""}
-            </div>
-          );
-        })}
       </div>
 
       <div className={styles.message}>
         {message}
+      </div>
+
+      <div className={styles.inputArea}>
+        <input
+          className={styles.wordInput}
+          disabled={timeLeft<=0}
+          value={word}
+          onChange={(event)=> {
+            setWord(event.target.value.toLowerCase());
+            setUsedLetters([]);
+          }}
+          onKeyDown={(event)=>{
+            if(event.key==="Enter"){
+              submitWord();
+            }
+          }}
+          placeholder="type a word..."
+          />
+
+          <button
+            className={styles.backButton}
+            onClick={removeLetter}
+            disabled={timeLeft<=0 || word.length===0}
+          >
+            ←
+          </button>
+
+          <button
+            className={styles.clearButton}
+            onClick={clearWord}
+            disabled={timeLeft<=0 || word.length===0}
+          >
+            Clear
+          </button>
+      </div>
+
+      <button
+        className={styles.enterButton}
+        onClick={submitWord}
+        disabled={timeLeft<=0}
+      >
+        ENTER
+      </button>
+
+      <div className={styles.wordArea}>
+        {Array.from({length: letters.length}).map((_, index)=> (
+          <div
+            key={index}
+            className={`${styles.wordSlot} ${
+              index < word.length ? styles.filledSlot : ""
+            }`}
+          >
+            {index<word.length
+              ?word[index].toUpperCase()
+              : ""}
+          </div>
+        ))}
       </div>
 
       <div className={styles.letterArea}>
@@ -164,54 +208,6 @@ export default function Home() {
           </button>
         ))} 
       </div>
-
-      <div className={styles.inputArea}>
-        <input 
-          className={styles.wordInput}
-          disabled={timeLeft<=0}
-          value={word}
-          onChange={(event)=>{
-            setWord(event.target.value);
-            setUsedLetters([]);
-          }}
-          onKeyDown={(event)=> {
-            if(event.key==="Enter"){
-              submitWord();
-            }
-          }}
-          placeholder="type a word..."
-        />
-
-        <button
-          className={styles.backButton}
-          onClick={removeLetter}
-          disabled={timeLeft<=0||word.length===0}
-        >
-          ←
-        </button>
-
-        <button
-          className={styles.clearButton}
-          onClick={clearWord}
-          disabled={timeLeft<=0||word.length===0}
-        >
-          Clear
-        </button>
-      </div>
-
-      <button
-        className={styles.submitButton}
-        onClick={submitWord}
-        disabled={timeLeft<=0}
-      >
-        Submit
-      </button>
-      <button
-        className={styles.newGameButton}
-        onClick={startGame}
-      >
-        New Game
-      </button>
     </main>
   );
 }
