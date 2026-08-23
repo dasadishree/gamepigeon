@@ -14,6 +14,8 @@ export default function Home() {
   const [endTime, setEndTime] = useState<number | null>(null);
   const [usedLetters, setUsedLetters] = useState<number[]>([]);
   const [wordsFound, setWordsFound] = useState(0);
+  const [feedbackType, setFeedbackType] = useState<"correct" | "incorrect" | null>(null);
+  const [showFeedback, setShowFeedback] = useState(false);
 
   async function startGame() {
     const response= await fetch(`${API_URL}/game/anagrams/new`);
@@ -28,16 +30,17 @@ export default function Home() {
     setMessage("");
     setUsedLetters([]);
     setWordsFound(0);
+    setFeedbackType(null);
   }
 
   async function submitWord() {
     if(timeLeft<=0){
-      setMessage("Time's up!");
       return;
     }
     if(!word.trim()) {
       return;
     }
+    const submittedWord = word.trim().toLowerCase();
     const response = await fetch(`${API_URL}/game/anagrams/check`, {
       method: "POST",
       headers: {
@@ -46,17 +49,21 @@ export default function Home() {
       body: JSON.stringify({
         game_id: gameId,
         player_id: "adishree",
-        word: word,
+        word: submittedWord,
       }),
     });
 
     const data = await response.json();
     if(data.valid){
-      setMessage(`Correct! +${data.points} points`);
       setScore(data.total_score);
       setWordsFound((prev)=>prev+1);
+      setMessage(`${submittedWord.toUpperCase()} (+${data.points})`);
+      setFeedbackType("correct");
     } else {
-      setMessage(data.message);
+      setMessage(
+        `${submittedWord.toUpperCase()} (Not in the vocabulary)`
+      );
+      setFeedbackType("incorrect")
     }
     setWord("");
     setUsedLetters([]);
@@ -66,6 +73,8 @@ export default function Home() {
     if(timeLeft<=0||usedLetters.includes(index)){
       return;
     }
+    setMessage("");
+    setFeedbackType(null);
     setWord((prev)=>prev+letter);
     setUsedLetters((prev)=>[...prev, index]);
   }
@@ -74,6 +83,8 @@ export default function Home() {
     if(word.length===0){
       return;
     }
+    setMessage("");
+    setFeedbackType(null);
     setWord((prev)=>prev.slice(0,-1));
     setUsedLetters((prev)=>prev.slice(0,-1));
   }
@@ -81,6 +92,8 @@ export default function Home() {
   function clearWord(){
     setWord("");
     setUsedLetters([]);
+    setMessage("");
+    setFeedbackType(null);
   }
 
   function formatTime(seconds: number){
@@ -133,16 +146,14 @@ export default function Home() {
         </div>
       </div>
 
-      <div className={styles.message}>
-        {message}
-      </div>
-
       <div className={styles.inputArea}>
         <input
           className={styles.wordInput}
           disabled={timeLeft<=0}
           value={word}
           onChange={(event)=> {
+            setMessage("");
+            setFeedbackType(null);
             setWord(event.target.value.toLowerCase());
             setUsedLetters([]);
           }}
@@ -179,19 +190,40 @@ export default function Home() {
         ENTER
       </button>
 
-      <div className={styles.wordArea}>
-        {Array.from({length: letters.length}).map((_, index)=> (
-          <div
-            key={index}
-            className={`${styles.wordSlot} ${
-              index < word.length ? styles.filledSlot : ""
-            }`}
+      <div 
+        className={`${styles.wordArea} ${
+        feedbackType==="correct"
+            ? styles.wordAreaCorrect
+            : feedbackType==="incorrect"
+            ? styles.wordAreaIncorrect
+            : ""
+        }`}  
+      >
+        <div className={styles.wordSlots}>
+          {Array.from({length: letters.length}).map((_, index)=> (
+            <div
+              key={index}
+              className={`${styles.wordSlot} ${
+                index < word.length ? styles.filledSlot : ""
+              }`}
+            >
+              {index<word.length
+                ?word[index].toUpperCase()
+                : ""}
+            </div>
+          ))}
+        </div>
+
+        {message && (
+          <div className={`${styles.wordFeedback} ${
+            feedbackType==="correct"
+              ? styles.feedbackCorrect
+              : styles.feedbackIncorrect
+          }`}
           >
-            {index<word.length
-              ?word[index].toUpperCase()
-              : ""}
+            {message}
           </div>
-        ))}
+        )}
       </div>
 
       <div className={styles.letterArea}>
