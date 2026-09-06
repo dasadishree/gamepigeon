@@ -33,28 +33,6 @@ export default function ResultsPage(){
     return(
         <main className={styles.page}>
 
-            {opponentFinished && yourWon && (
-                <div className={`${styles.resultBanner} ${styles.winBanner}`}>
-                    YOU WIN!
-                </div>
-            )}
-            {opponentFinished && youLost && (
-                <div className={`${styles.resultBanner} ${styles.loseBanner}`}>
-                    YOU LOSE
-                </div>
-            )}
-            {opponentFinished && tie && (
-                <div className={`${styles.resultBanner} ${styles.tieBanner}`}>
-                    TIE!
-                </div>
-            )}
-
-            {!opponentFinished && (
-                <div className={`${styles.resultBanner}`}>
-                    GAME FINISHED!
-                </div>
-            )}
-
             <div className={styles.players}>
                 <section 
                     className={`${styles.playerSide} ${
@@ -94,7 +72,7 @@ export default function ResultsPage(){
                 </section>
 
                 <section 
-                    className={`${styles.playerPanel} ${
+                    className={`${styles.playerSide} ${
                         youLost ? styles.loserPanel : tie ? styles.tiePanel : ""
                     }`}>
                     <h1 className={styles.playerName}>
@@ -152,7 +130,7 @@ export default function ResultsPage(){
                     YOU WON!
                 </div>
             ) : youLost ? (
-                <div className={styles.youTie}>
+                <div className={styles.youLost}>
                     YOU LOST!
                 </div>
             ) : (
