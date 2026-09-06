@@ -1,5 +1,6 @@
 "use client";
 import {useEffect, useState } from "react";
+import {useRouter} from "next/navigation";
 import styles from "./page.module.css";
 
 const API_URL = "http://127.0.0.1:8000";
@@ -16,6 +17,7 @@ export default function Home() {
   const [wordsFound, setWordsFound] = useState(0);
   const [feedbackType, setFeedbackType] = useState<"correct" | "incorrect" | null>(null);
   const [showFeedback, setShowFeedback] = useState(false);
+  const router = useRouter();
 
   async function startGame() {
     const response= await fetch(`${API_URL}/game/anagrams/new`);
@@ -37,7 +39,7 @@ export default function Home() {
     if(timeLeft<=0){
       return;
     }
-    if(!word.trim()) {
+    if(word.trim().length<3) {
       return;
     }
     const submittedWord = word.trim().toLowerCase();
@@ -96,6 +98,23 @@ export default function Home() {
     setFeedbackType(null);
   }
 
+  function handleTyping(value: string) {
+    const newLetter = value.slice(-1).toUpperCase();
+    if(value.length<word.length){
+      removeLetter();
+      return;
+    }
+    if(!/^[A-Z]$/.test(newLetter)){
+      return;
+    }
+    const availableIndex = letters.findIndex(
+      (letter, index)=> letter.toUpperCase() ===newLetter && !usedLetters.includes(index)
+    );
+    if(availableIndex === -1){
+      return;
+    }
+    addLetter(newLetter, availableIndex);
+  }
   function formatTime(seconds: number){
     const minutes = Math.floor(seconds/60);
     const remainingSeconds = seconds%60;
@@ -121,6 +140,7 @@ export default function Home() {
 
       if(remaining===0){
         clearInterval(timer);
+        router.push("/results");
       }
     }, 250);
 
@@ -152,14 +172,15 @@ export default function Home() {
           disabled={timeLeft<=0}
           value={word}
           onChange={(event)=> {
-            setMessage("");
-            setFeedbackType(null);
-            setWord(event.target.value.toLowerCase());
-            setUsedLetters([]);
+            handleTyping(event.target.value);
           }}
           onKeyDown={(event)=>{
             if(event.key==="Enter"){
               submitWord();
+            }
+            if(event.key==="Backspace"){
+              event.preventDefault();
+              removeLetter();
             }
           }}
           placeholder="type a word..."

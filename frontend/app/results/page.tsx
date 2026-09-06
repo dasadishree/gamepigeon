@@ -1,26 +1,26 @@
 "use client";
 
-import {useState} from "react";
 import styles from "./page.module.css";
 
 export default function ResultsPage(){
+    // temp words
     const yourWords=[
         {word: "GARDEN", points: 2000},
         {word: "NERD", points: 400},
         {word: "RED", points: 100},
     ];
 
-    const yourScore = yourWords.reduce(
-        (total, item) => total + item.points, 0
-    );
-
-    // temporary??
     const opponentFinished = true;
+
     const opponentWords = [
         {word: "DRAGON", points: 2000},
         {word: "READ", points: 400},
         {word: "RAN", points: 100},
     ];
+
+    const yourScore = yourWords.reduce(
+        (total, item) => total + item.points, 0
+    );
 
     const opponentScore = opponentWords.reduce(
         (total, item) => total + item.points, 0
@@ -28,23 +28,38 @@ export default function ResultsPage(){
 
     const yourWon = yourScore > opponentScore;
     const youLost = yourScore < opponentScore;
+    const tie = yourScore === opponentScore;
 
     return(
         <main className={styles.page}>
-            {yourWon && (
+
+            {opponentFinished && yourWon && (
+                <div className={`${styles.resultBanner} ${styles.winBanner}`}>
+                    YOU WIN!
+                </div>
+            )}
+            {opponentFinished && youLost && (
                 <div className={`${styles.resultBanner} ${styles.loseBanner}`}>
                     YOU LOSE
                 </div>
             )}
-
-            {!yourWon && !youLost && opponentFinished && (
+            {opponentFinished && tie && (
                 <div className={`${styles.resultBanner} ${styles.tieBanner}`}>
                     TIE!
                 </div>
             )}
 
+            {!opponentFinished && (
+                <div className={`${styles.resultBanner}`}>
+                    GAME FINISHED!
+                </div>
+            )}
+
             <div className={styles.players}>
-                <section className={styles.playerSide}>
+                <section 
+                    className={`${styles.playerSide} ${
+                        yourWon ? styles.winnerPanel : tie ? styles.tiePanel : ""
+                    }`}>
                     <h1 className={styles.playerName}>You</h1>
                     <div className={`${styles.avatar} ${
                         yourWon ? styles.winnerAvatar : ""
@@ -78,7 +93,10 @@ export default function ResultsPage(){
                     </div>
                 </section>
 
-                <section className={styles.playerSide}>
+                <section 
+                    className={`${styles.playerPanel} ${
+                        youLost ? styles.loserPanel : tie ? styles.tiePanel : ""
+                    }`}>
                     <h1 className={styles.playerName}>
                         Opponent
                     </h1>
@@ -112,7 +130,6 @@ export default function ResultsPage(){
                                     <div className={styles.points}>
                                         +{item.points}
                                     </div>
-
                                 </div>
                             ))}
 
@@ -126,9 +143,21 @@ export default function ResultsPage(){
                 </section>
             </div>
             
-            {!opponentFinished && (
+            {!opponentFinished ? (
                 <div className={styles.bottomWaiting}>
                     WAITING FOR OPPONENT
+                </div>
+            ) : yourWon ? (
+                <div className={styles.youWon}>
+                    YOU WON!
+                </div>
+            ) : youLost ? (
+                <div className={styles.youTie}>
+                    YOU LOST!
+                </div>
+            ) : (
+                <div className={styles.youTie}>
+                    TIE
                 </div>
             )}
         </main>
