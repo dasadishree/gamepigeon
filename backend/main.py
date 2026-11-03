@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
-from game import is_valid_word, calculate_score
+from game import is_valid_word, calculate_score, can_form_word
 import random
 import uuid
 from datetime import datetime, timedelta
@@ -40,6 +40,7 @@ WORDS=[
 ]
 
 games={}
+wordhunt_games = {}
 
 @app.get("/")
 def home():
@@ -234,6 +235,167 @@ def check_word(submission: WordSubmission):
     points = calculate_score(word)
     player["words"].append(word)
     player["score"]+=points
+    return{
+        "valid": True,
+        "word": word,
+        "points": points,
+        "total_score": player["score"]
+    }
+
+# word hunt generate
+def generate_wordhunt_board():
+    letters = [
+        "a", "e", "i", "o",
+        "b", "c", "d", "f",
+        "g", "h", "l", "m",
+        "n", "r", "s", "t"
+    ]
+    random.shuffle(letters)
+    return [letters[i:i + 4] for i in range(0,16,4)]
+
+# word hunt create game enepdoint
+@app.get("/game/wordhunt/new")
+def new_wordhunt_game():
+    board=generate_wordhunt_board()
+    game_id = str(uuid.uuid4())[:6]
+    wordhunt_games[game_id] = {
+        "board": board,
+        "time_limit": 60,
+        "started_at": None,
+        "players": {}
+    }
+    return{
+        "game_id": game_id,
+        "board": board,
+        "time_limit": 60
+    }
+
+#join word hunt game
+@app.post("/game/wordhunt/join")
+def join_wordhunt_game(join: JoinGame):
+    if join.game_id not in wordhunt_games:
+        return{
+            "success": False,
+            "message": "Game not found."
+        }
+    game = wordhunt_games[join.game_id]
+    if join.player_id in game["players"]:
+        return{
+            "success": True,
+            "message": "You are already in this game.",
+            "players": list(game["players"].keys()),
+            "board": game["board"],
+            "time_limit": game["time_limit"]
+        }
+    if len(game["players"])>=2:
+        return{
+            "success": False,
+            "message": "This game is already full."
+        }
+    game["players"][join.player_id]={
+        "words": [],
+        "score": 0
+    }
+    if len(game["players"]) == 2:
+        game["started_at"] = datetime.now()
+
+    return{
+        "success": True,
+        "message": "Joined game!",
+        "players": list(game["players"].keys()),
+        "board": game["board"],
+        "time_limit": game["time_limit"],
+        "started_at": (
+            game["started_at"].isoformat()
+            if game["started_at"] else None
+        )
+    }
+
+# word hunt game status
+@app.get("/game/wordhunt/{game_id}/status")
+def get_wordhunt_status(game_id: str):
+    if game_id not in wordhunt_games:
+        return{
+            "success": False,
+            "message": "Game not found."
+        }
+    game=wordhunt_games[game_id]
+
+    if game["started_at"] is None:
+        status = "waiting"
+    elif datetime.now() >= game["started_at"]+timedelta(
+        seconds=game["time_limit"]
+    ):
+        status="finished"
+    else:
+        status="active"
+
+    return{
+        "success": True,
+        "status": status,
+        "players": list(game["players"].keys()),
+        "board": game["board"],
+        "time_limit": game["time_limit"],
+        "started_at": (
+            game["started_at"].isoformat()
+            if game["started_at"] else None
+        )
+    }
+
+#word hunt check word and score
+@app.post("/game/wordhunt/check")
+def check_wordhunt_word(submission: WordSubmission):
+    if submission.game_id not in wordhunt_games:
+        return{
+            "valid": False,
+            "message": "Game not found",
+            "points": 0
+        }
+    game=wordhunt_games[submission.game_id]
+    if game["started_at"] is None:
+        return{
+            "valid": False,
+            "message": "The game has not started yet.",
+            "points": 0
+        }
+    if datetime.now()>=game["started_at"]+timedelta(
+        seconds=game["time_limit"]
+    ):
+        return{
+            "valid": False,
+            "message": "Time's up!",
+            "points": 0
+        }
+    word = submission.word.strip().lower()
+    player_id = submission.player_id
+
+    if player_id not in game["players"]:
+        return{
+            "valid": False,
+            "message": "You havent joined this game",
+            "points": 0
+        }
+    
+    player = game["players"][player_id]
+
+    if word in player["words"]:
+        return{
+            "valid": False,
+            "message": "You already submitted that word!",
+            "points": 0
+        }
+    
+    if len(word)<3 or not can_form_word(game["board"], word):
+        return{
+            "valid": False,
+            "message": "That's not a valid word on this board!",
+            "points": 0
+        }
+    
+    points = calculate_score(word)
+    player["words"].append(word)
+    player["score"] += points
+
     return{
         "valid": True,
         "word": word,
