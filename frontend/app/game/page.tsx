@@ -260,8 +260,8 @@ export default function GamePage(){
                 {letters.map((letter, index)=> (
                     <button
                         key={index}
-                        className={`${styles.letterTitle} ${
-                            usedLetters.includes(index) ? styles.usedTitle : ""
+                        className={`${styles.letterTile} ${
+                            usedLetters.includes(index) ? styles.usedTile : ""
                         }`}
                         disabled={timeLeft<=0||usedLetters.includes(index)}
                         onClick={()=>addLetter(letter,index)}

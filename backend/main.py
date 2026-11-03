@@ -140,6 +140,47 @@ def get_game_status(game_id: str):
             if game["started_at"] else None
         )
     }
+
+#getgsmeresults
+@app.get("/game/anagrams/{game_id}/results")
+def get_game_results(game_id: str):
+    if game_id not in games:
+        return{
+            "success": False,
+            "message": "Game not found."
+        }
+    game=games[game_id]
+
+    if game["started_at"] is None:
+        return{
+            "success": False,
+            "message": "Game hasn't started yet."
+        }
+    if datetime.now()<game["started_at"]+timedelta(
+        seconds=game["time_limit"]
+    ):
+        return{
+            "success": False,
+            "message": "Game is still in progress."
+        }
+    results =[]
+    for player_id, player in game["players"].items():
+        player_words=[]
+        for word in player["words"]:
+            player_words.append({
+                "word": word.upper(),
+                "points": calculate_score(word)
+            })
+        results.append({
+            "player_id": player_id,
+            "score": player["score"],
+            "words": player_words
+        })
+    return{
+        "success": True,
+        "players": results
+    }
+
 # check word and score
 @app.post("/game/anagrams/check")
 def check_word(submission: WordSubmission):
