@@ -10,13 +10,17 @@ export default function WaitingRoom() {
     const gameId = params.gameId as string;
     const [players, setPlayers] = useState<string[]>([]);
     const [status, setStatus] = useState("waiting");
+    const [gameType, setGameType] = useState("anagrams");
     const [message, setMessage] = useState("waiting for another player...");
 
     useEffect(() => {
         async function checkStatus(){
             try{
+                const currentGameType=sessionStorage.getItem("gameType") || "anagrams";
+                setGameType(currentGameType);
+
                 const response=await fetch(
-                    `${API_URL}/game/anagrams/${gameId}/status`
+                    `${API_URL}/game/${currentGameType}/${gameId}/status`
                 );
                 const data = await response.json();
                 if(!data.success){
@@ -26,7 +30,7 @@ export default function WaitingRoom() {
                 setPlayers(data.players);
                 setStatus(data.status);
                 if(data.status==="active"){
-                    router.push(`/game?gameId=${gameId}`);
+                    router.push(`/games/${currentGameType}?gameId=${gameId}`)
                 } else if (data.status==="finished"){
                     setMessage("This game has already ended.");                   
                 } else{
@@ -62,7 +66,7 @@ export default function WaitingRoom() {
                 boxShadow: "0 8px 25px rgba(48,32,68,0.2)",
             }}>
                 <h1>GAMEPIGEON</h1>
-                <h2>ANAGRAMS</h2>
+                <h2>{gameType === "wordhunt" ? "WORD HUNT" : "ANAGRAMS"}</h2>
                 <p>share this code with a friend:</p>
                 <h1 style={{
                     fontSize: "42px",
