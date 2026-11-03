@@ -111,6 +111,35 @@ def join_game(join: JoinGame):
         "started_at": game["started_at"]
     }
 
+# gamestatus endpoint
+@app.get("/game/anagrams/{game_id}/status")
+def get_game_status(game_id: str):
+    if game_id not in games:
+        return{
+            "success": False,
+            "message": "Game not found."
+        }
+    game=games[game_id]
+    if game["started_at"] is None:
+        status="waiting"
+    elif datetime.now()>=game["started_at"]+timedelta(
+        seconds=game["time_limit"]
+    ):
+        status="finished"
+    else:
+        status="active"  
+
+    return{
+        "success": True,
+        "status": status,
+        "players": list(game["players"].keys()),
+        "letters": game["letters"],
+        "time_limit": game["time_limit"],
+        "started_at": (
+            game["started_at"].isoformat()
+            if game["started_at"] else None
+        )
+    }
 # check word and score
 @app.post("/game/anagrams/check")
 def check_word(submission: WordSubmission):
