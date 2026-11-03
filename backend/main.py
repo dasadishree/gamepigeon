@@ -73,6 +73,7 @@ class JoinGame(BaseModel):
     game_id: str
     player_id: str
 
+# join anagrams game
 @app.post("/game/anagrams/join")
 def join_game(join: JoinGame):
     if join.game_id not in games:
@@ -99,6 +100,8 @@ def join_game(join: JoinGame):
         "words": [],
         "score": 0
     }
+    if len(game["players"])==2:
+        game["started_at"]=datetime.now()
     return{
         "success": True,
         "message": "Joined game!",
@@ -108,6 +111,7 @@ def join_game(join: JoinGame):
         "started_at": game["started_at"]
     }
 
+# check word and score
 @app.post("/game/anagrams/check")
 def check_word(submission: WordSubmission):
     if submission.game_id not in games:
@@ -136,10 +140,12 @@ def check_word(submission: WordSubmission):
     player_id = submission.player_id
 
     if player_id not in game["players"]:
-        game["players"][player_id]={
-            "words": [],
-            "score": 0
+        return{
+            "valid": False,
+            "message": "You haven't joined this game.",
+            "points": 0
         }
+
     player = game["players"][player_id]
 
     # no repeats

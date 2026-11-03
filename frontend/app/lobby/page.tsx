@@ -1,4 +1,3 @@
-// i think this shd be temporary until i make ts into a slakc extension
 "use client";
 import {useState} from "react";
 import {useRouter} from "next/navigation";
@@ -6,10 +5,10 @@ import {useRouter} from "next/navigation";
 const API_URL = "http://127.0.0.1:8000";
 
 export default function LobbyPage() {
-    const [gameId, setGameId] = useState("");
     const [joinCode, setJoinCode] = useState("");
     const [playerId, setPlayerId] = useState("");
     const [message, setMessage] = useState("");
+    const [loading, setLoading] = useState(false);
 
     const router = useRouter();
 
@@ -18,27 +17,39 @@ export default function LobbyPage() {
             setMessage("Enter your name first.");
             return;
         }
+        setLoading(true);
 
-        const response = await fetch(`${API_URL}/game/anagrams/new`);
-        const data = await response.json();
+        try{
+            const response = await fetch(`${API_URL}/game/anagrams/new`);
+            const data = await response.json();
 
-        setGameId(data.game_id);
+            const joinResponse = await fetch(
+                `${API_URL}/game/anagrams/join`, 
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                        game_id: data.game_id,
+                        player_id: playerId,
+                    }),
+                }
+            );
 
-        const joinResponse = await fetch(`${API_URL}/game/anagrams/join`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-                game_id: data.game_id,
-                player_id: playerId,
-            }),
-        });
+            const joinData = await joinResponse.json();
 
-        const joinData = await joinResponse.json();
+            if(joinData.success) {
+                setMessage(`Game created! Code: ${data.game_id}`);
+            }
 
-        if(joinData.success) {
-            setMessage(`Game created! Code: ${data.game_id}`);
+            sessionStorage.setItem("gameId", data.game_id);
+            sessionStorage.setItem("playerId", playerId.trim());
+            router.push(`/lobby/${data.game_id}`);
+        } catch { 
+            setMessage("couldnt connect to server try again");
+        } finally {
+            setLoading(false);
         }
     }
 
@@ -48,20 +59,126 @@ export default function LobbyPage() {
             return;
         }
 
-        const response = await fetch(
-            `${API_URL}/game/anagrams/join`,
-            {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                    game_id: joinCode.trim(),
-                    player_id: playerId,
-                }),
-            }
-        );
+        setLoading(true);
+        try{
+            const response = await fetch(
+                `${API_URL}/game/anagrams/join`,
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                        game_id: joinCode.trim(),
+                        player_id: playerId.trim()
+                    }),
+                }
+            );
+        
+            const data = await response.json();
 
-        const data = await response.json();
+            if(!data.success){
+                setMessage(data.message);
+                return;
+            }
+
+            sessionStorage.setItem("gameId", joinCode.trim());
+            sessionStorage.setItem("playerId", playerId.trim());
+            router.push(`/lobby/${joinCode.trim()}`);
+        } catch {
+            setMessage("Couldn't connect to the server. Try again.");
+        } finally {
+            setLoading(false);
+        }
     }
+
+    return(
+        <main style={{
+            minHeight: "100vh",
+            background: "#d8c9f2",
+            display: "flex",
+            justifyContent:"center",
+            alignItems:"center",
+            fontFamily:"Arial, Helvetica, sans-serif",
+            color: "#302044",
+            padding: "20px"
+        }}>
+            <div style={{
+                background:"#fffdf5",
+                padding: "40px",
+                borderRadius: "20px",
+                width: "100%",
+                maxWidth: "380px",
+                textAlign:"center",
+                boxShadow: "0 8px 25px rgba(48,32,68,0.2)",
+            }}>
+                <h1>GAMEPIGEON</h1>
+                <h2>ANAGRAMS</h2>
+                <input
+                    placeholder="Your name"
+                    value={playerId}
+                    onChange={(event)=>setPlayerId(event.target.value)}
+                    style={{
+                        width: "100%",
+                        padding: "13px",
+                        borderRadius: "8px",
+                        border: "1px solid #ccc",
+                        boxSizing: "border-box",
+                        marginBottom: "20px",
+                    }}
+                />
+                <button
+                    onClick={createGame}
+                    disabled={loading}
+                    style={{
+                        width:"100%",
+                        padding: "14px",
+                        background: "#4b2f70",
+                        color: "white",
+                        border: "none",
+                        borderRadius: "8px",
+                        fontWeight: "bold",
+                        cursor: "pointer",
+                    }}
+                >
+                    CREATE GAME
+                </button>
+
+                <p>OR</p>
+                <input
+                    placeholder="Enter game code"
+                    value={joinCode}
+                    onChange={(event)=>setJoinCode(event.target.value)}
+                    style={{
+                        width: "100%",
+                        padding: "13px",
+                        borderRadius: "8px",
+                        border: "1px solid #ccc",
+                        boxSizing: "border-box",
+                        marginBottom: "12px",
+                    }}
+                />
+                <button
+                    onClick={joinGame}
+                    disabled={loading}
+                    style={{
+                        width: "100%",
+                        padding: "14px",
+                        background: "#bf8b5a",
+                        color: "white",
+                        border: "none",
+                        borderRadius: "8px",
+                        fontWeight: "bold",
+                        cursor: "pointer",
+                    }}
+                >
+                    JOIN GAME
+                </button>
+                {message && (
+                    <p style={{marginTop: "20px"}}>{message}</p>
+                )}
+                {loading && <p>Loading...</p>}
+            </div>
+        </main>
+    );
 }
