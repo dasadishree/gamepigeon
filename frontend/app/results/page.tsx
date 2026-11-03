@@ -22,6 +22,7 @@ type GameResults ={
 export default function ResultsPage(){
     const [results, setResults] = useState<GameResults | null>(null);
     const [playerId, setPlayerId] = useState("");
+    const [gameType, setGameType] = useState<"anagrams" | "wordhunt">("anagrams");
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
 
@@ -30,6 +31,8 @@ export default function ResultsPage(){
             const params = new URLSearchParams(window.location.search);
             const gameId = params.get("gameId");
             const savedPlayerId = sessionStorage.getItem("playerId");
+            const savedGameType = sessionStorage.getItem("gameType") || "anagrams";
+            setGameType(savedGameType as "anagrams" | "wordhunt");
             if(!gameId || !savedPlayerId){
                 setError("Missing game information.");
                 setLoading(false);
@@ -40,7 +43,7 @@ export default function ResultsPage(){
                 let data;
                 while(true){
                     const response=await fetch(
-                        `${API_URL}/game/anagrams/${gameId}/results`
+                        `${API_URL}/game/${savedGameType}/${gameId}/results`
                     );
                     data=await response.json();
                     if (response.ok && data.success) {
@@ -92,7 +95,7 @@ export default function ResultsPage(){
     }
 
     return(
-        <main className={styles.page}>
+        <main className={`${styles.page} ${gameType === "wordhunt" ? styles.wordhunt : ""}`}>
 
             <div className={styles.players}>
                 <section 

@@ -268,3 +268,22 @@
     transform: translateY(3px);
     box-shadow: 0 2px 0 #684728;
 }
+
+
+.wordhunt{
+    background: #91bd83;
+    color: #263b29;
+}
+
+.wordhunt .wordListBox,
+.wordhunt .bottomWaiting{
+    background: #285c38;
+}
+
+.wordhunt .waitingBox{
+    border-color: #285c38;
+}
+
+.wordhunt .scorePaper{
+    box-shadow: 3px 4px 0 rgba(38,59,41, 0.15);
+}

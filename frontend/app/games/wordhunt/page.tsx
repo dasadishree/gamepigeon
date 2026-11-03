@@ -26,6 +26,7 @@ export default function WordHuntPage() {
     const [validTiles, setValidTiles] = useState<TilePosition[]>([]);
 
     useEffect(() => {
+        sessionStorage.setItem("gameType", "wordhunt");
         const params = new URLSearchParams(window.location.search);
         const id = params.get("gameId");
         const player = sessionStorage.getItem("playerId");
@@ -55,6 +56,7 @@ export default function WordHuntPage() {
                     return;
                 }
                 if(data.status==="finished"){
+                    sessionStorage.setItem("gameType", "wordhunt")
                     router.push(`/results?gameId=${gameId}`);
                     return;
                 }
@@ -84,6 +86,7 @@ export default function WordHuntPage() {
             setTimeLeft(remaining);
             if(remaining===0){
                 clearInterval(timer);
+                sessionStorage.setItem("gameType", "wordhunt");
                 router.push(`/results?gameId=${gameId}`);
             }
         }, 250);
