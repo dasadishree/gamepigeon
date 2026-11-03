@@ -70,6 +70,7 @@
     gap: 9px;
     box-shadow: 0 8px 16px rgba(30,70,40,0.2);
     touch-action: none;
+    position: relative;
 }
 
 .letterTile{
@@ -89,6 +90,8 @@
     transition: transform 0.08s ease, filter 0.1s ease;
     user-select: none;
     -webkit-user-select: none;
+    position: relative;
+    z-index: 2;
 }
 
 .letterTile:hover:not(:disabled){
@@ -110,8 +113,8 @@
     text-align: center;
 }
 .selectedTile{
-    background: linear-gradient(145deg, #e6c76e, #c99b3e);
-    border: 3px solid #fff0b5;
+    background: #d94b45;
+    border: 3px solid #fff;
     transform: scale(0.94);
 }
 
@@ -133,4 +136,19 @@
 .timer strong{
     font-size: 30px;
     font-weight: 900;
+}
+
+.selectionLines{
+    position: absolute;
+    inset: 20px;
+    width: calc(100% - 40px);
+    height: calc(100% - 40px);
+    pointer-events: none;
+    z-index: 1;
+}
+
+.validTile{
+    background: #e6c76e;
+    border: 3px solid #fff0b5;
+    transform: scale(0.94);
 }

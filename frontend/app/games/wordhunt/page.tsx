@@ -23,6 +23,7 @@ export default function WordHuntPage() {
     const [message, setMessage] = useState("");
     const [selectedTiles, setSelectedTiles] = useState<TilePosition[]>([]);
     const [isSelecting, setIsSelecting] = useState(false);
+    const [validTiles, setValidTiles] = useState<TilePosition[]>([]);
 
     useEffect(() => {
         const params = new URLSearchParams(window.location.search);
@@ -94,8 +95,49 @@ export default function WordHuntPage() {
         setSelectedTiles([{row, col}])
     }
 
-    function endSelection() {
+    // submit word
+    async function endSelection() {
         setIsSelecting(false);
+
+        if(selectedTiles.length<3){
+            setSelectedTiles([]);
+            return;
+        }
+
+        const word = selectedTiles
+            .map(tile => board[tile.row][tile.col])
+            .join("")
+            .toLowerCase();
+
+        try{
+            const response=await fetch(`${API_URL}/game/wordhunt/check`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    game_id: gameId,
+                    player_id: playerId,
+                    word: word,
+                }),
+            });
+            const data = await response.json();
+            if(data.valid){
+                setScore(data.total_score);
+                setWordsFound(previous => previous+1);
+                setMessage(`${word.toUpperCase()} +${data.points}`);
+                setValidTiles(selectedTiles);
+                setSelectedTiles([]);
+                setTimeout(() => {
+                    setValidTiles([]);
+                    setMessage("");
+                }, 800);
+            } else {
+                setSelectedTiles([]);
+            }
+        } catch {
+            setSelectedTiles([]);
+        }
     }
 
     function addTile(row: number, col: number) {
@@ -137,15 +179,38 @@ export default function WordHuntPage() {
                 )}
 
                 <div className={styles.board}>
+                    {/* white connecting line */}
+                    <svg className={styles.selectionLines} viewBox="0 0 400 400">
+                        {selectedTiles.length>1 && (
+                            <polyline
+                                points={selectedTiles
+                                    .map(tile=>`${50+tile.col*100},${50+tile.row*100}`)
+                                    .join(" ")}
+                                fill="none"
+                                stroke="white"
+                                strokeWidth="13"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                            />
+                        )}
+                    </svg>
+
                     {board.map((row, rowIndex) => 
                         row.map((letter, colIndex) => (
                             <button
                                 key={`${rowIndex}-${colIndex}`}
                                 className={`${styles.letterTile} ${
                                     selectedTiles.some(
-                                        (tile) => tile.row === rowIndex && tile.col === colIndex
-                                    ) ? styles.selectedTile : ""
+                                        tile => tile.row === rowIndex && tile.col === colIndex
+                                    ) 
+                                        ? styles.selectedTile
+                                        : validTiles.some(
+                                            tile => tile.row === rowIndex && tile.col === colIndex
+                                        )
+                                        ? styles.validTile
+                                        : ""
                                 }`}
+
                                 disabled={timeLeft<=0}
                                 onPointerDown={()=>startSelection(rowIndex, colIndex)}
                                 onPointerEnter={()=>{
