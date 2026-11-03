@@ -202,16 +202,16 @@
     padding: 20px 25px 30px;
     border-radius: 20px;
     box-shadow:
-        0 0 25px rgba(244, 211, 94, 0.55),
-        0 0 70px rgba(244, 211, 94, 0.35);
+        0 0 24px 10px rgba(244, 205, 55, 0.22),
+        0 0 60px 24px rgba(244, 205, 55, 0.12);
 }
 
 .loserPanel{
     padding: 20px 25px 30px;
     border-radius: 20px;
     box-shadow:
-        0 0 25px rgba(239, 98, 98, 0.55),
-        0 0 70px rgba(239, 98, 98, 0.35);
+        0 0 24px 10px rgba(255, 75, 75, 0.22),
+        0 0 60px 24px rgba(255, 76, 75, 0.12);
 }
 
 .tiePanel{
@@ -229,4 +229,42 @@
         grid-template-columns: 1fr;
         gap: 50px;
     }
+}
+
+.lobbyButton{
+    margin-top: 30px;
+    padding: 14px 32px;
+    background: linear-gradient(
+        145deg,
+        #b98a55,
+        #935538
+    );
+    color: #fffaf0;
+    border: 2px solid #76502f;
+    border-radius: 12px;
+    font-family: inherit;
+    font-size: 17px;
+    font-weight:800;
+    letter-spacing: 1px;
+    cursor: pointer;
+    box-shadow:
+        0 8px 0 #684728,
+        0 12px 22px rgba(0,0,0,0.22);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.lobbyButton:hover{
+    transform: translateY(-3px);
+    box-shadow:
+        0 8px 0 #684728,
+        0 12px 22px rgba(0,0,0,0.22);
+}
+
+.lobbyButton:active{
+    transform: translateY(3px);
+    box-shadow: 0 2px 0 #684728;
 }

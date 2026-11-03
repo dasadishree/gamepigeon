@@ -1,34 +1,95 @@
 "use client";
-
+import {useEffect,useState} from "react";
 import styles from "./page.module.css";
+const API_URL = "http://127.0.0.1:8000";
+
+type Word ={
+    word: string;
+    points: number;
+};
+
+type PlayerResult={
+    player_id: string;
+    score: number;
+    words: Word[];
+};
+
+type GameResults ={
+    success: boolean;
+    players: PlayerResult[];
+};
 
 export default function ResultsPage(){
-    // temp words
-    const yourWords=[
-        {word: "GARDEN", points: 2000},
-        {word: "NERD", points: 400},
-        {word: "RED", points: 100},
-    ];
+    const [results, setResults] = useState<GameResults | null>(null);
+    const [playerId, setPlayerId] = useState("");
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState("");
 
-    const opponentFinished = true;
+    useEffect(() => {
+        async function loadResults() {
+            const params = new URLSearchParams(window.location.search);
+            const gameId = params.get("gameId");
+            const savedPlayerId = sessionStorage.getItem("playerId");
+            if(!gameId || !savedPlayerId){
+                setError("Missing game information.");
+                setLoading(false);
+                return;
+            }
+            setPlayerId(savedPlayerId);
+            try{
+                let data;
+                while(true){
+                    const response=await fetch(
+                        `${API_URL}/game/anagrams/${gameId}/results`
+                    );
+                    data=await response.json();
+                    if (response.ok && data.success) {
+                        break;
+                    }
+                    if(response.status!==400){
+                        throw new Error(data.detail || "Could not load results.");
+                    }
+                    await new Promise((resolve) => setTimeout(resolve, 1000));
+                }
+                setResults(data);
+            } catch(err){
+                setError(
+                    err instanceof Error ? err.message : "Something went wrong."
+                );
+            } finally {
+                setLoading(false);
+            }
+        }
+        loadResults();
+    }, []);
 
-    const opponentWords = [
-        {word: "DRAGON", points: 2000},
-        {word: "READ", points: 400},
-        {word: "RAN", points: 100},
-    ];
-
-    const yourScore = yourWords.reduce(
-        (total, item) => total + item.points, 0
+    const yourResult = results?.players.find(
+        (player) => player.player_id === playerId
     );
 
-    const opponentScore = opponentWords.reduce(
-        (total, item) => total + item.points, 0
-    );
+    const opponentResult = results?.players.find(
+        (player) => player.player_id !== playerId
+    )
 
+    const yourWords = yourResult?.words ?? [];
+    const opponentWords = opponentResult?.words ?? [];
+    const opponentFinished = !!results && !!opponentResult;
+    const yourScore = yourResult?.score ?? 0;
+    const opponentScore = opponentResult?.score ?? 0;
     const yourWon = yourScore > opponentScore;
     const youLost = yourScore < opponentScore;
-    const tie = yourScore === opponentScore;
+    const tie=yourScore===opponentScore;
+
+    if(loading){
+        return<main className={styles.page}>Loading results...</main>;
+    }
+    if(error || !results || !yourResult || !opponentResult) {
+        return (
+            <main className={styles.page}>
+                {error || "Could not find both players' results."}
+            </main>
+        );
+    }
 
     return(
         <main className={styles.page}>
@@ -138,6 +199,17 @@ export default function ResultsPage(){
                     TIE
                 </div>
             )}
+
+
+            <button
+                className={styles.lobbyButton}
+                type="button"
+                onClick={() => {
+                    window.location.href="/lobby";
+                }}
+            >
+                PLAY AGAIN
+            </button>
         </main>
     );
 }
