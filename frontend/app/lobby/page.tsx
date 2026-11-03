@@ -102,12 +102,12 @@ export default function LobbyPage() {
     return(
         <main style={{
             minHeight: "100vh",
-            background: "#d8c9f2",
+            background: selectedGame === "wordhunt" ? "dcefd5" : "#d8c9f2",
             display: "flex",
             justifyContent:"center",
             alignItems:"center",
             fontFamily:"Arial, Helvetica, sans-serif",
-            color: "#302044",
+            color: selectedGame === "wordhunt" ? "#285c38" : "#3302044",
             padding: "20px"
         }}>
             <div style={{

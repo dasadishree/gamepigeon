@@ -1,0 +1,114 @@
+.page{
+    min-height: 100vh;
+    background: #91bd83;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 25px;
+    font-family: Arial, Helvetica, sans-serif;
+    color: #263b29;
+}
+
+.gameContainer{
+    width: 100%;
+    max-width: 460px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 25px;
+}
+
+.scoreNote{
+    width: 100%;
+    background: #fff8df;
+    border: 2px solid #d7c99e;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 5px 10px rgba(0,0,0,0.15);
+    transform: rotate(-1deg);
+}
+
+.noteHeader{
+    text-align: center;
+    font-size: 25px;
+    font-weight: 900;
+    letter-spacing: 3px;
+    margin-bottom: 18px;
+}
+
+.stats{
+    display: flex;
+    justify-content: space-around;
+    text-align: center;
+}
+
+.stats div{
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.stats span{
+    font-size: 11px;
+    font-weight: bold;
+    letter-spacing: 1px;
+    color: #77704f;
+}
+
+.stats strong{
+    font-size: 25px;
+}
+
+.board{
+    width: 100%;
+    aspect-ratio: 1;
+    background: #252522;
+    border: 10px solid #171715;
+    border-radius: 22px;
+    padding: 12px;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    grid-template-rows: repeat(4, 1fr);
+    gap: 9px;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+    touch-action: none;
+}
+
+.letterTile{
+    background: linear-gradient(
+        145deg,
+        #bd8752,
+        #966039
+    );
+    border: 2px solid #704727;
+    border-radius: 9px;
+    color: #fff3dc;
+    font-size: clamp(25px, 7vw, 39px);
+    font-weight: 900;
+    text-shadow: 1px 2px 2px rgba(0,0,0,0.4);
+    box-shadow:
+        inset 2px 2px 4px rgba(255,255,255,0.2),
+        0 3px 3px rgba(0,0,0,0.3);
+    cursor: pointer;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+.letterTile:active{
+    transform: scale(0.96);
+}
+
+.letterTile:disabled {
+    cursor: default;
+}
+
+.instructions{
+    font-size: 15px;
+    font-weight: bold;
+    letter-spacing: 0.5px;
+}
+
+.message{
+    font-weight: bold;
+    text-align: center;
+}
