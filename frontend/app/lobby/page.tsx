@@ -108,7 +108,7 @@ export default function LobbyPage() {
             justifyContent:"center",
             alignItems:"center",
             fontFamily:"Arial, Helvetica, sans-serif",
-            color: selectedGame === "wordhunt" ? "#285c38" : "#3302044",
+            color: "#000",
             padding: "20px"
         }}>
             <div style={{

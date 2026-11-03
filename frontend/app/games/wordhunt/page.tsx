@@ -120,25 +120,15 @@ export default function WordHuntPage() {
 
     return(
         <main className={styles.page}>
+            <div className={styles.timer}>
+                <strong>{timeLeft}</strong>
+            </div>
+
             <div className={styles.gameContainer}>
                 <div className={styles.scoreNote}>
-                    <div className={styles.noteHeader}>
-                        WORD HUNT
-                    </div>
-
-                    <div className={styles.stats}>
-                        <div>
-                            <span>TIME</span>
-                            <strong>{timeLeft}</strong>
-                        </div>
-                        <div>
-                            <span>SCORE</span>
-                            <strong>{score}</strong>
-                        </div>
-                        <div>  
-                            <span>WORDS</span>
-                            <strong>{wordsFound}</strong>
-                        </div>
+                    <div className={styles.noteText}> 
+                        <div className={styles.wordsText}># SCORE:</div>
+                        <div className={styles.scoreText}>{score}</div>
                     </div>
                 </div>
 

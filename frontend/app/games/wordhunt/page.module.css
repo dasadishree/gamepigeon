@@ -2,9 +2,10 @@
     min-height: 100vh;
     background: #91bd83;
     display: flex;
-    justify-content: center;
+    justify-content: flex-start;
     align-items: center;
-    padding: 25px;
+    padding: 35px 20px 50px;
+    position: relative;
     font-family: Arial, Helvetica, sans-serif;
     color: #263b29;
 }
@@ -19,87 +20,83 @@
 }
 
 .scoreNote{
-    width: 100%;
-    background: #fff8df;
-    border: 2px solid #d7c99e;
-    border-radius: 8px;
-    padding: 20px;
-    box-shadow: 0 5px 10px rgba(0,0,0,0.15);
-    transform: rotate(-1deg);
+    position: relative;
+    width: 390px;
+    min-height: 145px;
+    background: #fff;
+    margin-top: 55px;
+    margin-bottom: 25px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 25px 30px;
+    box-sizing: border-box;
+    box-shadow: 0 8px 15px rgba(55,75,50,0.18);
+    clip-path: polygon(
+        1% 4%, 96% 0%, 99% 12%, 97% 29%,
+        100% 47%, 97% 66%, 99% 84%, 95% 100%,
+        75% 97%, 56% 100%, 38% 97%, 20% 100%,
+        3% 96%, 1% 78%, 3% 59%, 0% 40%, 3% 20%
+    );
 }
 
-.noteHeader{
-    text-align: center;
-    font-size: 25px;
+.noteText{
+    color: #111;
     font-weight: 900;
-    letter-spacing: 3px;
-    margin-bottom: 18px;
-}
-
-.stats{
-    display: flex;
-    justify-content: space-around;
     text-align: center;
 }
 
-.stats div{
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
+.wordsText{
+    font-size: 19px;
+    margin-bottom: 7px;
 }
 
-.stats span{
-    font-size: 11px;
-    font-weight: bold;
-    letter-spacing: 1px;
-    color: #77704f;
-}
-
-.stats strong{
-    font-size: 25px;
+.scoreText{
+    font-size: 34px;
+    line-height: 1;
 }
 
 .board{
     width: 100%;
     aspect-ratio: 1;
-    background: #252522;
-    border: 10px solid #171715;
+    background: rgba(235, 246, 229, 0.65);
+    border: 8px solid #285c38;
     border-radius: 22px;
     padding: 12px;
+    box-sizing: border-box;
     display: grid;
     grid-template-columns: repeat(4, 1fr);
     grid-template-rows: repeat(4, 1fr);
     gap: 9px;
-    box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+    box-shadow: 0 8px 16px rgba(30,70,40,0.2);
     touch-action: none;
 }
 
 .letterTile{
-    background: linear-gradient(
-        145deg,
-        #bd8752,
-        #966039
-    );
-    border: 2px solid #704727;
-    border-radius: 9px;
-    color: #fff3dc;
-    font-size: clamp(25px, 7vw, 39px);
+    width: 100%;
+    height: 100%;
+    border: none;
+    border-radius: 10px;
+    background: #bf8b5a;
+    color: #fff;
+    font-size: clamp(23px, 6vw, 29px);
     font-weight: 900;
-    text-shadow: 1px 2px 2px rgba(0,0,0,0.4);
-    box-shadow:
-        inset 2px 2px 4px rgba(255,255,255,0.2),
-        0 3px 3px rgba(0,0,0,0.3);
     cursor: pointer;
+    box-shadow:
+        inset 0 3px 0 rgba(255,255,255,0.2),
+        inset 0 -4px 0 rgba(80,45,20,0.2),
+        0 5px 8px rgba(70,45,35,0.25);
+    transition: transform 0.08s ease, filter 0.1s ease;
     user-select: none;
     -webkit-user-select: none;
 }
 
-.letterTile:active{
-    transform: scale(0.96);
+.letterTile:hover:not(:disabled){
+    filter: brightness(1.07);
+    transform: translateY(-2px);
 }
-
-.letterTile:disabled {
-    cursor: default;
+.letterTile:active:not(:disabled){
+    transform: translateY(2px);
 }
 
 .instructions{
@@ -116,4 +113,24 @@
     background: linear-gradient(145deg, #e6c76e, #c99b3e);
     border: 3px solid #fff0b5;
     transform: scale(0.94);
+}
+
+.timer{
+    position: absolute;
+    top: 25px;
+    right: 28px;
+    background: #285c38;
+    color: white;
+    min-width: 72px;
+    height: 42px;
+    border-radius: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 8px rgba(30, 70, 40, 0.22);
+}
+
+.timer strong{
+    font-size: 30px;
+    font-weight: 900;
 }
