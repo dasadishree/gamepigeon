@@ -22,6 +22,7 @@ SIX_LETTER_WORDS = [
 
 games={}
 wordhunt_games = {}
+wordbites_games={}
 
 @app.get("/")
 def home():
@@ -469,4 +470,95 @@ def get_wordhunt_results(game_id: str):
     return{
         "success": True,
         "players": results
+    }
+
+# word bites generate board
+def generate_wordbites_board():
+    rows=9
+    cols=8
+    board={
+        "rows": rows,
+        "cols": cols,
+        "tiles": []
+    }
+    for i in range(6):
+        board["tiles"].append({
+            "id": f"single_{i}",
+            "letters": random.choice("etaoinshrdlucmfwypvbgk"),
+            "orientation": "single",
+            "row": None,
+            "col": None
+        })
+    double_combinations = [
+        "th", "er", "in", "an", "re",
+        "on", "at", "en", "nd", "ou"
+    ]
+    for i in range(5):
+        board["tiles"].append({
+            "id": f"double_{i}",
+            "letters": random.choice(double_combinations),
+            "orientation": random.choice(["horizontal", "vertical"]),
+            "row": None,
+            "col": None
+        })
+    return board
+
+#create word bites game
+@app.get("/game/wordbites/new")
+def new_wordbites_game():
+    board = generate_wordbites_board()
+    game_id=str(uuid.uuid4())[:6]
+    wordbites_games[game_id]={
+        "board": board,
+        "time_limit": 60,
+        "started_at": None,
+        "players": {}
+    }
+    return{
+        "game_id": game_id,
+        "board": board,
+        "time_limit": 60 
+    }
+
+# join word bites game
+@app.post("/game/wordbites/join")
+def join_wordbites_game(join: JoinGame):
+    if join.game_id not in wordbites_games:
+        return{
+            "success": False,
+            "message": "game not found"
+        }
+    game=wordbites_games[join.game_id]
+    if join.player_id in game["players"]:
+        return{
+            "success": True,
+            "message": "You are already in this game.",
+            "players": list(game["players"].keys()),
+            "board": game["board"],
+            "time_limit": game["time_limit"]
+        }
+    if len(game["players"])>=2:
+        return{
+            "success": False,
+            "message": "This game is already full."
+        }
+
+    game["players"][join.player_id]={
+        "words": [],
+        "score": 0
+    }
+
+    if len(game["players"])==2:
+        game["started_at"]=datetime.now()
+
+    return {
+        "success": True,
+        "message": "Joined game!",
+        "players": list(game["players"].keys()),
+        "board": game["board"],
+        "time_limit": game["time_limit"],
+        "started_at": (
+            game["started_at"].isoformat()
+            if game["started_at"] else None
+        )
     }
