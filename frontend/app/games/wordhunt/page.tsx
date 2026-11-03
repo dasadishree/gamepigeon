@@ -172,7 +172,7 @@ export default function WordHuntPage() {
             <div className={styles.gameContainer}>
                 <div className={styles.scoreNote}>
                     <div className={styles.noteText}> 
-                        <div className={styles.wordsText}># SCORE:</div>
+                        <div className={styles.wordsText}>SCORE:</div>
                         <div className={styles.scoreText}>{score}</div>
                     </div>
                 </div>

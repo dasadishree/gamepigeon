@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
-from game import is_valid_word, calculate_score, can_form_word
+from game import is_valid_word, calculate_score, can_form_word, DICTIONARY
 import random
 import uuid
 from datetime import datetime, timedelta
@@ -15,28 +15,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# justputting placeholder list of 6 letter words for nwo - later maybe will pull forom a dictionary or smth?
-WORDS=[
-    "planet",
-    "friend",
-    "school",
-    "orange",
-    "stream",
-    "button",
-    "rocket",
-    "forest",
-    "little",
-    "garden",
-    "animal",
-    "summer",
-    "winter",
-    "purple",
-    "banana",
-    "python",
-    "coding",
-    "coffee",
-    "flower",
-    "pencil",
+SIX_LETTER_WORDS = [
+    word for word in DICTIONARY
+    if len(word) == 6 and word.isalpha()
 ]
 
 games={}
@@ -48,7 +29,7 @@ def home():
 
 @app.get("/game/anagrams/new")
 def new_anagram_game():
-    word = random.choice(WORDS)
+    word = random.choice(SIX_LETTER_WORDS)
     letters=  list(word)
     random.shuffle(letters)
     game_id=str(uuid.uuid4())[:6]
@@ -242,16 +223,62 @@ def check_word(submission: WordSubmission):
         "total_score": player["score"]
     }
 
-# word hunt generate
+# word hunt generate (make it more posisubke to make words from)
 def generate_wordhunt_board():
-    letters = [
-        "a", "e", "i", "o",
-        "b", "c", "d", "f",
-        "g", "h", "l", "m",
-        "n", "r", "s", "t"
+    board = [[""]*4 for _ in range(4)]
+    words = [
+        word for word in DICTIONARY
+        if 3<=len(word) <=6 and word.isalpha()
     ]
-    random.shuffle(letters)
-    return [letters[i:i + 4] for i in range(0,16,4)]
+
+    def place_word(word):
+        positions = [
+            (row, col)
+            for row in range(4)
+            for col in range(4)
+        ]
+        random.shuffle(positions)
+        
+        def search(row, col, index, visited):
+            if board[row][col] not in ("", word[index]):
+                return False
+            was_empty = board[row][col] == ""
+            board[row][col] = word[index]
+            visited.add((row, col))
+            if index==len(word)-1:
+                return True
+            neighbors = [
+                (row + dr, col+dc)
+                for dr in [-1,0,1]
+                for dc in [-1,0,1]
+                if (dr!=0 or dc!=0)
+                and 0<= row + dr<4
+                and 0<=col+dc<4
+                and (row+dr, col+dc) not in visited
+            ]
+            random.shuffle(neighbors)
+            for next_row, next_col in neighbors:
+                if search(
+                    next_row, next_col, index+1, visited
+                ):
+                    return True
+            visited.remove((row, col))
+            if was_empty: 
+                board[row][col]=""
+            return False
+        for row,col in positions:
+            if search(row, col, 0, set()):
+                return True
+        return False
+    selected_words = random.sample(words, min(8, len(words)))
+    for word in selected_words:
+        place_word(word)
+    common_letters = "eeeeeeeeeeeeaaaaaaaaiiiiiiiiioooooooonnnnnnrrrrrrttttttssssssllllccccuuddddppmmhgbfyw"
+    for row in range(4):
+        for col in range(4):
+            if board[row][col] =="":
+                board[row][col] = random.choice(common_letters)
+    return board
 
 # word hunt create game enepdoint
 @app.get("/game/wordhunt/new")
