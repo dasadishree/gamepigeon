@@ -55,7 +55,7 @@ def new_anagram_game():
         "answer": word,
         "letters": letters,
         "time_limit": 60,
-        "started_at": datetime.now(),
+        "started_at": None,
         "players": {}
     }
     return {
@@ -69,6 +69,45 @@ class WordSubmission(BaseModel):
     player_id: str
     word: str
 
+class JoinGame(BaseModel):
+    game_id: str
+    player_id: str
+
+@app.post("/game/anagrams/join")
+def join_game(join: JoinGame):
+    if join.game_id not in games:
+        return{
+            "success": False,
+            "message": "Game not found."
+        }
+    game = games[join.game_id]
+    if join.player_id in game["players"]:
+        return{
+            "success": True,
+            "message": "You are already in this game.",
+            "players": list(game["players"].keys()),
+            "letters": game["letters"],
+            "time_limit": game["time_limit"]
+        }
+    if len(game["players"]) >=2:
+        return{
+            "success": False,
+            "message": "This game is already full."
+        }
+
+    game["players"][join.player_id]={
+        "words": [],
+        "score": 0
+    }
+    return{
+        "success": True,
+        "message": "Joined game!",
+        "players": list(game["players"].keys()),
+        "letters": game["letters"],
+        "time_limit": game["time_limit"],
+        "started_at": game["started_at"]
+    }
+
 @app.post("/game/anagrams/check")
 def check_word(submission: WordSubmission):
     if submission.game_id not in games:
@@ -79,6 +118,12 @@ def check_word(submission: WordSubmission):
         }
 
     game = games[submission.game_id]
+    if game["started_at"] is None:
+        return{
+            "valid": False,
+            "message": "The game has not started yet.",
+            "points": 0
+        }
     elapsed = datetime.now() - game["started_at"]
     if elapsed> timedelta(seconds=game["time_limit"]):
         return{

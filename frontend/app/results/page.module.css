@@ -8,7 +8,7 @@
 }
 
 .players{
-    width: min(1250px, 100%);
+    width: min(1200px, 100%);
     margin: 0 auto;
     display: grid;
     grid-template-columns: 1fr 1fr;
