@@ -64,6 +64,7 @@ export default function LobbyPage() {
             setMessage("Enter your name and game code.");
             return;
         }
+        const normalizedGameId = joinCode.trim().toLowerCase();
 
         setLoading(true);
         try{
@@ -75,7 +76,7 @@ export default function LobbyPage() {
                         "Content-Type": "application/json",
                     },
                     body: JSON.stringify({
-                        game_id: joinCode.trim(),
+                        game_id: normalizedGameId,
                         player_id: playerId.trim()
                     }),
                 }
@@ -88,10 +89,10 @@ export default function LobbyPage() {
                 return;
             }
 
-            sessionStorage.setItem("gameId", joinCode.trim());
+            sessionStorage.setItem("gameId", normalizedGameId);
             sessionStorage.setItem("playerId", playerId.trim());
             sessionStorage.setItem("gameType", selectedGame);
-            router.push(`/lobby/${joinCode.trim()}`);
+            router.push(`/lobby/${normalizedGameId}`);
         } catch {
             setMessage("Couldn't connect to the server. Try again.");
         } finally {
@@ -102,7 +103,7 @@ export default function LobbyPage() {
     return(
         <main style={{
             minHeight: "100vh",
-            background: selectedGame === "wordhunt" ? "dcefd5" : "#d8c9f2",
+            background: selectedGame === "wordhunt" ? "#dcefd5" : "#d8c9f2",
             display: "flex",
             justifyContent:"center",
             alignItems:"center",
@@ -179,7 +180,7 @@ export default function LobbyPage() {
                     style={{
                         width:"100%",
                         padding: "14px",
-                        background: "#4b2f70",
+                        background: selectedGame === "wordhunt" ? "#285c38" : "#4b2f70",
                         color: "white",
                         border: "none",
                         borderRadius: "8px",

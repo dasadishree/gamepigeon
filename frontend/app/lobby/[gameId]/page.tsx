@@ -23,6 +23,9 @@ export default function WaitingRoom() {
                     `${API_URL}/game/${currentGameType}/${gameId}/status`
                 );
                 const data = await response.json();
+                console.log("GAME TYPE:", currentGameType);
+                console.log("GAME STATUS:", data);
+
                 if(!data.success){
                     setMessage(data.message);
                     return;
@@ -48,7 +51,7 @@ export default function WaitingRoom() {
     return(
         <main style={{
             minHeight: "100vh",
-            background: "#d8c9f2",
+            background: gameType === "wordhunt" ? "#dcefd5" : "#d8c9f2",
             display: "flex",
             justifyContent: "center",
             alignItems: "center",

@@ -6,6 +6,11 @@ import styles from "./page.module.css";
 const API_URL = "http://127.0.0.1:8000";
 type Board = string[][];
 
+type TilePosition ={
+    row: number;
+    col: number;
+};
+
 export default function WordHuntPage() {
     const router = useRouter();
     const [gameId, setGameId] = useState("");
@@ -16,6 +21,8 @@ export default function WordHuntPage() {
     const [score, setScore] = useState(0);
     const [wordsFound, setWordsFound] = useState(0);
     const [message, setMessage] = useState("");
+    const [selectedTiles, setSelectedTiles] = useState<TilePosition[]>([]);
+    const [isSelecting, setIsSelecting] = useState(false);
 
     useEffect(() => {
         const params = new URLSearchParams(window.location.search);
@@ -82,6 +89,35 @@ export default function WordHuntPage() {
         return () => clearInterval(timer);
     }, [endTime, gameId, router]);
 
+    function startSelection(row: number, col: number) {
+        setIsSelecting(true);
+        setSelectedTiles([{row, col}])
+    }
+
+    function endSelection() {
+        setIsSelecting(false);
+    }
+
+    function addTile(row: number, col: number) {
+        if(timeLeft<=0) return;
+        setSelectedTiles((previous)=>{
+            const alreadySelected = previous.some(
+                (tile) => tile.row === row && tile.col === col
+            );
+            if(alreadySelected) return previous;
+            if(previous.length>0){
+                const lastTile = previous[previous.length-1];
+                const rowDifference = Math.abs(lastTile.row - row);
+                const colDifference = Math.abs(lastTile.col-col);
+                if(rowDifference>1 || colDifference > 1) {
+                    return previous;
+                }
+            }
+
+            return [...previous, { row, col }];
+        });
+    }
+
     return(
         <main className={styles.page}>
             <div className={styles.gameContainer}>
@@ -115,8 +151,19 @@ export default function WordHuntPage() {
                         row.map((letter, colIndex) => (
                             <button
                                 key={`${rowIndex}-${colIndex}`}
-                                className={styles.letterTile}
+                                className={`${styles.letterTile} ${
+                                    selectedTiles.some(
+                                        (tile) => tile.row === rowIndex && tile.col === colIndex
+                                    ) ? styles.selectedTile : ""
+                                }`}
                                 disabled={timeLeft<=0}
+                                onPointerDown={()=>startSelection(rowIndex, colIndex)}
+                                onPointerEnter={()=>{
+                                    if(isSelecting){
+                                        addTile(rowIndex,colIndex);
+                                    }
+                                }}
+                                onPointerUp={endSelection}
                             >
                                 {letter.toUpperCase()}
                             </button>
