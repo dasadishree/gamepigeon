@@ -33,6 +33,9 @@ def calculate_score(word):
 # for word hunt
 def can_form_word(board, word):
     word=word.lower()
+    if not word:
+        return False
+
     if word not in DICTIONARY:
         return False
     rows=len(board)
