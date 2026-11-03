@@ -6,6 +6,7 @@ const API_URL = "http://127.0.0.1:8000";
 
 export default function LobbyPage() {
     const [joinCode, setJoinCode] = useState("");
+    const [selectedGame, setSelectedGame] = useState<"anagrams" | "wordhunt">("anagrams");
     const [playerId, setPlayerId] = useState("");
     const [message, setMessage] = useState("");
     const [loading, setLoading] = useState(false);
@@ -20,11 +21,11 @@ export default function LobbyPage() {
         setLoading(true);
 
         try{
-            const response = await fetch(`${API_URL}/game/anagrams/new`);
+            const response = await fetch(`${API_URL}/game/${selectedGame}/new`);
             const data = await response.json();
 
             const joinResponse = await fetch(
-                `${API_URL}/game/anagrams/join`, 
+                `${API_URL}/game/${selectedGame}/join`, 
                 {
                     method: "POST",
                     headers: {
@@ -38,12 +39,17 @@ export default function LobbyPage() {
             );
 
             const joinData = await joinResponse.json();
+            if(!joinData.success) {
+                setMessage(joinData.message || "couldnt join the game");
+                return;
+            }
 
             if(joinData.success) {
                 setMessage(`Game created! Code: ${data.game_id}`);
             }
 
             sessionStorage.setItem("gameId", data.game_id);
+            sessionStorage.setItem("gameType", selectedGame);
             sessionStorage.setItem("playerId", playerId.trim());
             router.push(`/lobby/${data.game_id}`);
         } catch { 
@@ -62,7 +68,7 @@ export default function LobbyPage() {
         setLoading(true);
         try{
             const response = await fetch(
-                `${API_URL}/game/anagrams/join`,
+                `${API_URL}/game/${selectedGame}/join`,
                 {
                     method: "POST",
                     headers: {
@@ -84,6 +90,7 @@ export default function LobbyPage() {
 
             sessionStorage.setItem("gameId", joinCode.trim());
             sessionStorage.setItem("playerId", playerId.trim());
+            sessionStorage.setItem("gameType", selectedGame);
             router.push(`/lobby/${joinCode.trim()}`);
         } catch {
             setMessage("Couldn't connect to the server. Try again.");
@@ -113,7 +120,46 @@ export default function LobbyPage() {
                 boxShadow: "0 8px 25px rgba(48,32,68,0.2)",
             }}>
                 <h1>GAMEPIGEON</h1>
-                <h2>ANAGRAMS</h2>
+                <h2>CHOOSE YOUR GAME</h2>
+                {/* game selector */}
+                <div style={{
+                    display: "flex",
+                    gap: "12px",
+                    marginBottom: "25px",
+                }}>
+                    <button
+                        onClick={()=>setSelectedGame("anagrams")}
+                        style={{
+                            flex: 1,
+                            padding: "18px 8px",
+                            background: selectedGame==="anagrams" ? "#4b2f70" : "#eee6f7",
+                            color: selectedGame === "anagrams" ? "white" : "#4b2f70",
+                            border: "2px solid #4b2f70",
+                            borderRadius: "12px",
+                            cursor: "pointer",
+                            fontWeight: "bold"
+                        }}
+                    >
+                        ANAGRAMS
+                    </button>
+
+                    <button
+                        onClick={()=>setSelectedGame("wordhunt")}
+                        style={{
+                            flex: 1,
+                            padding: "18px 8px",
+                            background: selectedGame === "wordhunt" ? "#285c38" : "#e4efdf",
+                            color: selectedGame === "wordhunt" ? "white" : "#285c38",
+                            border: "2px solid #285c38",
+                            borderRadius: "12px",
+                            cursor: "pointer",
+                            fontWeight: "bold",
+                        }}
+                    >
+                        WORD HUNT
+                    </button>
+                </div>
+
                 <input
                     placeholder="Your name"
                     value={playerId}
@@ -141,7 +187,7 @@ export default function LobbyPage() {
                         cursor: "pointer",
                     }}
                 >
-                    CREATE GAME
+                    CREATE {selectedGame === "anagrams" ? "ANAGRAMS" : "WORD HUNT"} GAME
                 </button>
 
                 <p>OR</p>
