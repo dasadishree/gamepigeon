@@ -56,6 +56,13 @@ class JoinGame(BaseModel):
     game_id: str
     player_id: str
 
+class MoveTile(BaseModel):
+    game_id: str
+    player_id: str
+    tile_id: str
+    row: int
+    col: int
+
 # join anagrams game
 @app.post("/game/anagrams/join")
 def join_game(join: JoinGame):
@@ -81,7 +88,7 @@ def join_game(join: JoinGame):
 
     game["players"][join.player_id]={
         "words": [],
-        "score": 0
+        "score": 0,
     }
     if len(game["players"])==2:
         game["started_at"]=datetime.now()
@@ -534,7 +541,7 @@ def join_wordbites_game(join: JoinGame):
             "success": True,
             "message": "You are already in this game.",
             "players": list(game["players"].keys()),
-            "board": game["board"],
+            "board": game["players"][join.player_id]["board"],
             "time_limit": game["time_limit"]
         }
     if len(game["players"])>=2:
@@ -545,7 +552,15 @@ def join_wordbites_game(join: JoinGame):
 
     game["players"][join.player_id]={
         "words": [],
-        "score": 0
+        "score": 0,
+        "board": {
+            "rows": game["board"]["rows"],
+            "cols": game["board"]["cols"],
+            "tiles": [
+                {**tile}
+                for tile in game["board"]["tiles"]
+            ]
+        }
     }
 
     if len(game["players"])==2:
@@ -555,10 +570,142 @@ def join_wordbites_game(join: JoinGame):
         "success": True,
         "message": "Joined game!",
         "players": list(game["players"].keys()),
-        "board": game["board"],
+        "board": game["players"][join.player_id]["board"],
         "time_limit": game["time_limit"],
         "started_at": (
             game["started_at"].isoformat()
             if game["started_at"] else None
         )
+    }
+
+# word bites game status
+@app.get("/game/wordbites/{game_id}/status")
+def get_wordbites_status(game_id: str, player_id: str):
+    if game_id not in wordbites_games:
+        return{
+            "success": False,
+            "message": "Game not found."
+        }
+    game=wordbites_games[game_id]
+    if player_id not in game["players"]:
+        return {
+            "success": False,
+            "message": "You haven't joined this game."
+        }
+    if game["started_at"] is None:
+        status = "waiting"
+    elif datetime.now() >= game["started_at"] + timedelta(
+        seconds=game["time_limit"]
+    ):
+        status="finished"
+    else:
+        status="active"
+    return{
+        "success": True,
+        "status": status,
+        "players": list(game["players"].keys()),
+        "board": game["players"][player_id]["board"],
+        "time_limit": game["time_limit"],
+        "started_at": (
+            game["started_at"].isoformat()
+            if game["started_at"] else None
+        )
+    }
+
+# move word bites tile
+@app.post("/game/wordbites/move")
+def move_wordbites_tile(move: MoveTile):
+    if move.game_id not in wordbites_games:
+        return{
+            "success": False,
+            "message": "Game not found"
+        }
+    game = wordbites_games[move.game_id]
+    if move.player_id not in game["players"]:
+        return{
+            "success": False,
+            "message": "You haven't joined this game."
+        }
+    if game["started_at"] is None:
+        return{
+            "success": False,
+            "message": "The game hasn't started yet."
+        }
+
+    if datetime.now() >= game["started_at"] + timedelta(
+        seconds=game["time_limit"]
+    ):
+        return{
+            "success": False,
+            "message": "Time's up!"
+        }
+    board=game["players"][move.player_id]["board"]
+
+    tile=next(
+        (
+            tile for tile in board["tiles"]
+            if tile["id"] == move.tile_id
+        ),
+        None
+    )
+
+    if tile is None:
+        return{
+            "success": False,
+            "message": "tile not found."
+        }
+    if tile["orientation"] =="horizontal":
+        new_cells=[
+            (move.row, move.col),
+            (move.row, move.col+1)
+        ]
+    elif tile["orientation"]=="vertical":
+        new_cells=[
+            (move.row, move.col),
+            (move.row+1, move.col)
+        ]
+    else:
+        new_cells=[(move.row, move.col)]
+
+    for row, col in new_cells:
+        if not(
+            0<=row<board["rows"]
+            and 0 <= col<board["cols"]
+        ):
+            return{
+                "success": False,
+                "message": "Tile is outside the board."
+            }
+        
+    for other_tile in board["tiles"]:
+        if other_tile["id"]==tile["id"]:
+            continue
+        if other_tile["row"] is None:
+            continue
+        if other_tile["orientation"] =="horizontal":
+            other_cells=[
+                (other_tile["row"], other_tile["col"]),
+                (other_tile["row"], other_tile["col"]+1)
+            ]
+        elif other_tile["orientation"]=="vertical":
+            other_cells=[
+                (other_tile["row"], other_tile["col"]),
+                (other_tile["row"]+1, other_tile["col"])
+            ]
+        else: 
+            other_cells=[
+                (other_tile["row"], other_tile["col"])
+            ]
+            
+        if any(cell in other_cells for cell in new_cells):
+            return{
+                "success": False,
+                "message": "Those spaces are already occupied."
+            }
+    tile["row"] = move.row
+    tile["col"] = move.col
+    return {
+        "success": True,
+        "message": "Tile moved!",
+        "board": board
     }
