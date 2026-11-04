@@ -612,6 +612,150 @@ def get_wordbites_status(game_id: str, player_id: str):
         )
     }
 
+# check whehter word exisits in straight line on the board
+def can_form_wordbites_word(board, word):
+    grid={}
+    double_tile_cells={}
+    for tile in board["tiles"]:
+        if tile["row"] is None:
+            continue
+        row = tile["row"]
+        col = tile["col"]
+        if tile["orientation"] == "horizontal":
+            cells=[
+                (row, col),
+                (row, col+1)
+            ]
+        elif tile["orientation"] =="vertical":
+            cells=[
+                (row, col),
+                (row+1, col)
+            ]
+        else:
+            cells=[(row,col)]
+        for index, cell in enumerate(cells):
+            grid[cell]={
+                "letter": tile["letters"][index],
+                "tile_id": tile["id"]
+            }
+        if tile["orientation"]!="single":
+            double_tile_cells[tile["id"]]=set(cells)
+    directions=[
+        (0,1),
+        (1,0)
+    ]
+    for row in range(board["rows"]):
+        for col in range(board["cols"]):
+            for dr, dc in directions:
+                positions=[
+                    (row+dr*i, col+dc*i)
+                    for i in range(len(word))
+                ]
+                if not all(position in grid for position in positions):
+                    continue
+                formed_word = "".join(
+                    grid[position]["letter"]
+                    for position in positions
+                )
+                if formed_word != word:
+                    continue
+                used_tiles={
+                    grid[position]["tile_id"]
+                    for position in positions
+                }
+                valid_tiles =True
+                for tile_id in used_tiles:
+                    if tile_id in double_tile_cells:
+                        if not double_tile_cells[tile_id].issubset(
+                            set(positions)
+                        ):
+                            valid_tiles=False
+                            break
+                if valid_tiles:
+                    return True
+    return False
+
+# scoring word bites 
+def calculate_wordbites_score(word):
+    if len(word)==3:
+        return 100
+    elif len(word)==4:
+        return 400
+    elif len(word)==5:
+        return 1200
+    elif len(word)==6:
+        return 2000
+    elif len(word)>6:
+        return 2000+(len(word)-6)*500
+    return 0
+
+# check and score word bites
+@app.post("/game/wordbites/check")
+def check_wordbites_word(submission: WordSubmission):
+    if submission.game_id not in wordbites_games:
+        return{
+            "valid": False,
+            "message": "Game not found",
+            "points": 0
+        }
+    game=wordbites_games[submission.game_id]
+    if game["started_at"] is None:
+        return{
+            "valid": False,
+            "message": "The game has not started yet",
+            "points": 0
+        }
+    if datetime.now()>= game["started_at"]+timedelta(
+        seconds=game["time_limit"]
+    ):
+        return{
+            "valid": False,
+            "message": "Time's up!",
+            "points": 0
+        }
+    word=submission.word.strip().lower()
+    player_id=submission.player_id
+    if player_id not in game["players"]:   
+        return{
+            "valid": False,
+            "message": "You haven't joined this game",
+            "points": 0
+        }
+    player=game["players"][player_id]
+    if len(word)<3:
+        return{
+            "valid": False,
+            "message": "Words must contain at least 3 letters",
+            "points": 0
+        }
+    if word in player["words"]:
+        return{
+            "valid": False,
+            "message": "You already submitted that word!",
+            "points": 0
+        }
+    if word not in DICTIONARY:
+        return{
+            "valid": False,
+            "message": "That's not a valid English word!",
+            "points":0
+        }
+    if not can_form_wordbites_word(player["board"], word):
+        return{
+            "valid": False,
+            "message": "That word isn't formed on your board!",
+            "points": 0
+        }
+    points = calculate_wordbites_score(word)
+    player["words"].append(word)
+    player["score"]+= points
+    return{
+        "valid": True,
+        "word": word,
+        "points": points,
+        "total_score": player["score"]
+    }
+
 # move word bites tile
 @app.post("/game/wordbites/move")
 def move_wordbites_tile(move: MoveTile):
@@ -696,7 +840,7 @@ def move_wordbites_tile(move: MoveTile):
             other_cells=[
                 (other_tile["row"], other_tile["col"])
             ]
-            
+
         if any(cell in other_cells for cell in new_cells):
             return{
                 "success": False,
