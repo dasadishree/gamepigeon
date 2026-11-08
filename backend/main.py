@@ -714,6 +714,13 @@ def check_wordbites_word(submission: WordSubmission):
             "points": 0
         }
     word=submission.word.strip().lower()
+    if not word.isalpha():
+        return{
+            "valid": False,
+            "message": "Words can only contain letters.",
+            "points": 0
+        }
+
     player_id=submission.player_id
     if player_id not in game["players"]:   
         return{
@@ -852,4 +859,43 @@ def move_wordbites_tile(move: MoveTile):
         "success": True,
         "message": "Tile moved!",
         "board": board
+    }
+
+#word bites game results
+@app.get("/game/wordbites/{game_id}/results")
+def get_wordbites_results(game_id: str):
+    if game_id not in wordbites_games:
+        return{
+            "success": False,
+            "message": "Game not found"
+        }
+    game=wordbites_games[game_id]
+    if game["started_at"] is None:
+        return{
+            "success": False,
+            "message": "Game hasn't started yet."
+        }
+    if datetime.now() < game["started_at"] + timedelta(
+        seconds=game["time_limit"]
+    ):
+        return{
+            "success": False,
+            "message": "Game is still in progress."
+        }
+    results =[]
+    for player_id, player in game["players"].items():
+        player_words = []
+        for word in player["words"]:
+            player_words.append({
+                "word": word.upper(),
+                "points": calculate_wordbites_score(word)
+            })
+        results.append({
+            "player_id": player_id,
+            "score": player["score"],
+            "words": player_words
+        })
+    return{
+        "success": True,
+        "players": results
     }
