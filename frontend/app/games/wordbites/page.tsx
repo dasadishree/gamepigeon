@@ -28,6 +28,9 @@ export default function WordBitesPage() {
     const [endTime, setEndTime] = useState<number | null>(null);
     const [score, setScore] = useState(0);
     const [wordsFound, setWordsFound] = useState(0);
+    const [foundWords, setFoundWords] = useState<
+        {word: string; points: number}[]
+    >([]);
     const [word, setWord] = useState("");
     const [message, setMessage] = useState("");
     const [draggedTile, setDraggedTile] = useState<string | null>(null);
@@ -66,6 +69,9 @@ export default function WordBitesPage() {
                     return;
                 }
                 setBoard(data.board);
+                setScore(data.score);
+                setWordsFound(data.words.length);
+                setFoundWords(data.word_details ?? []);
                 const gameEndTime = new Date(data.started_at).getTime() + data.time_limit *1000;
                 setEndTime(gameEndTime);
                 setTimeLeft(Math.max(0, Math.ceil((gameEndTime-Date.now())/1000)));
@@ -150,6 +156,13 @@ export default function WordBitesPage() {
             if(data.valid){
                 setScore(data.total_score);
                 setWordsFound(previous => previous +1);
+                setFoundWords(previous => [
+                    ...previous,
+                    {
+                        word: data.word.toUpperCase(),
+                        points: data.points
+                    }
+                ]);
                 setMessage(`${data.word.toUpperCase()} + ${data.points}`);
                 setWord("");
             } else {
@@ -194,6 +207,21 @@ export default function WordBitesPage() {
                         <span>WORDS FOUND</span>
                         <strong>{wordsFound}</strong>
                     </div>
+                </div>
+                <div className={styles.foundWords}>
+                    <h2>FOUND WORDS</h2>
+                    {foundWords.length === 0 ? (
+                        <p>No words found yet.</p>
+                    ) : (
+                        <ul>
+                            {foundWords.map((item, index) => (
+                                <li key={`${item.word}-${index}`}>
+                                    <span>{item.word}</span>
+                                    <strong>+{item.points}</strong>
+                                </li>
+                            ))}
+                        </ul>
+                    )}
                 </div>
                 {message && (
                     <p className={styles.message}>{message}</p>

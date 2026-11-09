@@ -600,11 +600,21 @@ def get_wordbites_status(game_id: str, player_id: str):
         status="finished"
     else:
         status="active"
+    player = game["players"][player_id]
     return{
         "success": True,
         "status": status,
         "players": list(game["players"].keys()),
-        "board": game["players"][player_id]["board"],
+        "board": player["board"],
+        "score": player["score"],
+        "words": player["words"],
+        "word_details": [
+            {
+                "word": found_word.upper(),
+                "points": calculate_wordbits_score(found_word)
+            }
+            for found_word in player["words"]
+        ],
         "time_limit": game["time_limit"],
         "started_at": (
             game["started_at"].isoformat()
