@@ -51,6 +51,7 @@ class WordSubmission(BaseModel):
     game_id: str
     player_id: str
     word: str
+    positions: list[list[int]] | None = None
 
 class JoinGame(BaseModel):
     game_id: str
@@ -482,33 +483,55 @@ def get_wordhunt_results(game_id: str):
 # word bites generate board
 def generate_wordbites_board():
     rows=9
-    cols=8
-    board={
+    cols=9
+    grid = [[None for _ in range(cols)] for _ in range(rows)]
+    directions = [
+        (-1, -1), (-1, 0), (-1, 1),
+        (0, -1),           (0, 1),
+        (1, -1), (1, 0), (1, 1)
+    ]
+    word_bank = [
+        word for word in DICTIONARY
+        if isinstance(word, str) and word.isalpha() and 3<=len(word)<=8
+    ]
+    random.shuffle(word_bank)
+    placed_count = 0
+    for word in word_bank:
+        if placed_count >= 15:
+            break
+        placed=False
+        for _ in range(100):
+            dr, dc = random.choice(directions)
+            start_row = random.randrange(rows)
+            start_col = random.randrange(cols)
+            positions = [
+                (start_row+dr*i, start_col+dc*i)
+                for i in range(len(word))
+            ]
+            if not all(
+                0 <= r < rows and 0 <= c < cols
+                for r, c in positions
+            ):
+                continue
+            if not all(
+                grid[r][c] is None or grid[r][c] == letter
+                for(r, c), letter in zip(positions, word)):
+                continue
+            for(r,c), letter in zip(positions, word):
+                grid[r][c] = letter
+            placed=True
+            placed_count+=1
+            break
+    letters="etaoinshrdlucmfwypvbgk"
+    for r in range(rows):
+        for c in range(cols):
+            if grid[r][c] is None:
+                grid[r][c] = random.choice(letters)
+    return{
         "rows": rows,
         "cols": cols,
-        "tiles": []
+        "grid": grid
     }
-    for i in range(6):
-        board["tiles"].append({
-            "id": f"single_{i}",
-            "letters": random.choice("etaoinshrdlucmfwypvbgk"),
-            "orientation": "single",
-            "row": None,
-            "col": None
-        })
-    double_combinations = [
-        "th", "er", "in", "an", "re",
-        "on", "at", "en", "nd", "ou"
-    ]
-    for i in range(5):
-        board["tiles"].append({
-            "id": f"double_{i}",
-            "letters": random.choice(double_combinations),
-            "orientation": random.choice(["horizontal", "vertical"]),
-            "row": None,
-            "col": None
-        })
-    return board
 
 #create word bites game
 @app.get("/game/wordbites/new")
@@ -556,9 +579,9 @@ def join_wordbites_game(join: JoinGame):
         "board": {
             "rows": game["board"]["rows"],
             "cols": game["board"]["cols"],
-            "tiles": [
-                {**tile}
-                for tile in game["board"]["tiles"]
+            "grid": [
+                row.copy()
+                for row in game["board"]["grid"]
             ]
         }
     }
@@ -611,7 +634,7 @@ def get_wordbites_status(game_id: str, player_id: str):
         "word_details": [
             {
                 "word": found_word.upper(),
-                "points": calculate_wordbits_score(found_word)
+                "points": calculate_wordbites_score(found_word)
             }
             for found_word in player["words"]
         ],
@@ -623,67 +646,31 @@ def get_wordbites_status(game_id: str, player_id: str):
     }
 
 # check whehter word exisits in straight line on the board
-def can_form_wordbites_word(board, word):
-    grid={}
-    double_tile_cells={}
-    for tile in board["tiles"]:
-        if tile["row"] is None:
-            continue
-        row = tile["row"]
-        col = tile["col"]
-        if tile["orientation"] == "horizontal":
-            cells=[
-                (row, col),
-                (row, col+1)
-            ]
-        elif tile["orientation"] =="vertical":
-            cells=[
-                (row, col),
-                (row+1, col)
-            ]
-        else:
-            cells=[(row,col)]
-        for index, cell in enumerate(cells):
-            grid[cell]={
-                "letter": tile["letters"][index],
-                "tile_id": tile["id"]
-            }
-        if tile["orientation"]!="single":
-            double_tile_cells[tile["id"]]=set(cells)
-    directions=[
-        (0,1),
-        (1,0)
-    ]
-    for row in range(board["rows"]):
-        for col in range(board["cols"]):
-            for dr, dc in directions:
-                positions=[
-                    (row+dr*i, col+dc*i)
-                    for i in range(len(word))
-                ]
-                if not all(position in grid for position in positions):
-                    continue
-                formed_word = "".join(
-                    grid[position]["letter"]
-                    for position in positions
-                )
-                if formed_word != word:
-                    continue
-                used_tiles={
-                    grid[position]["tile_id"]
-                    for position in positions
-                }
-                valid_tiles =True
-                for tile_id in used_tiles:
-                    if tile_id in double_tile_cells:
-                        if not double_tile_cells[tile_id].issubset(
-                            set(positions)
-                        ):
-                            valid_tiles=False
-                            break
-                if valid_tiles:
-                    return True
-    return False
+def can_form_wordbites_word(board, word, positions):
+    if positions is None or len(positions) != len(word):
+        return False
+    grid = board["grid"]
+    rows = board["rows"]
+    cols = board["cols"]
+    visited = set()
+    formed_word = ""
+    for i, position in enumerate(positions):
+        if len(position) != 2:
+            return False
+        row, col = position
+        if not(0<=row<rows and 0<=col<cols):
+            return False
+        if(row,col) in visited:
+            return False
+        if i>0:
+            previous_row, previous_col = positions[i-1]
+            if(
+                abs(row - previous_row)>1 or abs(col-previous_col)>1 or (row==previous_row and col==previous_col)
+            ):
+                return False
+        visited.add((row, col))
+        formed_word += grid[row][col]
+    return formed_word == word
 
 # scoring word bites 
 def calculate_wordbites_score(word):
@@ -757,7 +744,7 @@ def check_wordbites_word(submission: WordSubmission):
             "message": "That's not a valid English word!",
             "points":0
         }
-    if not can_form_wordbites_word(player["board"], word):
+    if not can_form_wordbites_word(player["board"], word, submission.positions):
         return{
             "valid": False,
             "message": "That word isn't formed on your board!",
