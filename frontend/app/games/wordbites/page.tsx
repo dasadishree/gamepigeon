@@ -223,8 +223,12 @@ export default function WordBitesPage() {
                             onDragEnd={() => setDraggedTile(null)}
                             className={`${styles.tile} ${
                                 tile.orientation === "single"
-                                    ? styles.singleTile
+                                    ? styles.singleTile 
                                     : styles.doubleTile
+                            } ${
+                                tile.orientation === "vertical"
+                                    ? styles.verticalDoubleTile
+                                    : ""
                             }`}
                             style={{
                                 gridRow: `${tile.row! + 1} / span ${
@@ -235,7 +239,18 @@ export default function WordBitesPage() {
                                 }`,
                             }}
                         >
-                            {tile.letters.toUpperCase()}
+                            {tile.orientation === "single" ? (
+                                tile.letters.toUpperCase()
+                            ) : ( 
+                                <> 
+                                    <span className={styles.pairLetter}>
+                                        {tile.letters[0].toUpperCase()}
+                                    </span>
+                                    <span className={styles.pairLetter}>
+                                        {tile.letters[1].toUpperCase()}
+                                    </span>
+                                </>
+                            )}
                         </button>
                     ))}
                 </div>
@@ -259,10 +274,25 @@ export default function WordBitesPage() {
                                     tile.orientation === "single"
                                         ? styles.singleTile
                                         : styles.doubleTile
+                                } ${
+                                    tile.orientation === "vertical" 
+                                        ? styles.verticalDoubleTile 
+                                        : ""
                                 }`}
                             >
-                                {tile.letters.toUpperCase()}
-                            </button>
+                                {tile.orientation==="single" ? (
+                                    tile.letters.toUpperCase()
+                                ) : (
+                                <>
+                                    <span className={styles.pairLetter}>
+                                        {tile.letters[0].toUpperCase()}
+                                    </span>
+                                    <span className={styles.pairLetter}>
+                                        {tile.letters[1].toUpperCase()}
+                                    </span>
+                                </>
+                            )}
+                        </button>
                         ))}
                     </div>
                 </div>

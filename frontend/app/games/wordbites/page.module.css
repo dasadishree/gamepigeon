@@ -133,8 +133,31 @@
     background: #3984c5;
 }
 .doubleTile{
+    display: flex;
+    gap: 3px;
+    align-items: center;
+    justify-content: center;
+    background: rgba(32,95,154,0.15);
+    border: 2px solid #124775;
+    border-radius: 9px;
+    padding: 2px;
+    box-sizing: border-box;
+}
+.verticalDoubleTile{
+    flex-direction: column;
+}
+.pairLetter{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    flex: 1;
+    min-width: 0;
     background: #205f9a;
-    border-color: #124775;
+    border: 2px solid #124775;
+    border-radius: 7px;
+    box-sizing: border-box;
 }
 .instructions{
     font-size: 14px;
@@ -170,7 +193,11 @@
     flex: 0 0 auto;
 }
 .trayTiles .doubleTile{
-    width: 76px;
+    width: 99px;
+}
+.trayTiles .verticalDoubleTile{
+    width: 48px;
+    height: 99px;
 }
 .wordForm{
     display: flex;
@@ -251,6 +278,10 @@
         height: 40px;
     }
     .trayTiles .doubleTile{
-        width: 65px;
+        width: 83px;
+    }
+    .trayTiles .verticalDoubleTile{
+        width: 40px;
+        height: 83px;
     }
 }
