@@ -6,7 +6,7 @@ const API_URL = "http://127.0.0.1:8000";
 
 export default function LobbyPage() {
     const [joinCode, setJoinCode] = useState("");
-    const [selectedGame, setSelectedGame] = useState<"anagrams" | "wordhunt">("anagrams");
+    const [selectedGame, setSelectedGame] = useState<"anagrams" | "wordhunt" | "wordbites">("anagrams");
     const [playerId, setPlayerId] = useState("");
     const [message, setMessage] = useState("");
     const [loading, setLoading] = useState(false);
@@ -103,7 +103,11 @@ export default function LobbyPage() {
     return(
         <main style={{
             minHeight: "100vh",
-            background: selectedGame === "wordhunt" ? "#dcefd5" : "#d8c9f2",
+            background: selectedGame === "wordhunt" 
+                ? "#dcefd5" 
+                : selectedGame === "wordbites" 
+                ? "#d9edfa" 
+                : "#d8c9f2",
             display: "flex",
             justifyContent:"center",
             alignItems:"center",
@@ -159,6 +163,25 @@ export default function LobbyPage() {
                     >
                         WORD HUNT
                     </button>
+
+                    <button
+                        onClick={() => setSelectedGame("wordbites")}
+                        style={{
+                            flex: 1,
+                            padding: "18px 8px",
+                            background: 
+                                selectedGame === "wordbites" 
+                                ? "#2878b5"
+                                : "#e1f0fa",
+                            color: selectedGame === "wordbites" ? "white" : "#2878b5",
+                            border: "2px solid #2878b5",
+                            borderRadius: "12px",
+                            cursor: "pointer",
+                            fontWeight: "bold",
+                        }}
+                    >
+                        WORD BITES
+                    </button>
                 </div>
 
                 <input
@@ -180,7 +203,12 @@ export default function LobbyPage() {
                     style={{
                         width:"100%",
                         padding: "14px",
-                        background: selectedGame === "wordhunt" ? "#285c38" : "#4b2f70",
+                        background: 
+                            selectedGame === "wordhunt" 
+                                ? "#285c38" 
+                                : selectedGame === "wordbites" 
+                                ? "#2878b5" 
+                                : "#4b2f70",
                         color: "white",
                         border: "none",
                         borderRadius: "8px",
@@ -188,7 +216,11 @@ export default function LobbyPage() {
                         cursor: "pointer",
                     }}
                 >
-                    CREATE {selectedGame === "anagrams" ? "ANAGRAMS" : "WORD HUNT"} GAME
+                    CREATE {selectedGame === "anagrams" 
+                        ? "ANAGRAMS" 
+                        : selectedGame === "wordhunt"
+                        ? "WORD HUNT"
+                        : "WORD BITES"} GAME
                 </button>
 
                 <p>OR</p>

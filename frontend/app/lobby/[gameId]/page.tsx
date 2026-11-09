@@ -19,9 +19,11 @@ export default function WaitingRoom() {
                 const currentGameType=sessionStorage.getItem("gameType") || "anagrams";
                 setGameType(currentGameType);
 
-                const response=await fetch(
-                    `${API_URL}/game/${currentGameType}/${gameId}/status`
-                );
+                const statusUrl = currentGameType === "wordbites" 
+                    ? `${API_URL}/game/${currentGameType}/${gameId}/status?player_id=${encodeURIComponent(sessionStorage.getItem("playerId") || "")}`
+                    : `${API_URL}/game/${currentGameType}/${gameId}/status`;
+
+                const response=await fetch(statusUrl);
                 const data = await response.json();
                 console.log("GAME TYPE:", currentGameType);
                 console.log("GAME STATUS:", data);
@@ -51,7 +53,12 @@ export default function WaitingRoom() {
     return(
         <main style={{
             minHeight: "100vh",
-            background: gameType === "wordhunt" ? "#dcefd5" : "#d8c9f2",
+            background: 
+                gameType === "wordhunt"
+                    ? "#dcefd5" 
+                    : gameType === "wordbites"
+                    ? "#d9edfa"
+                    : "#d8c9f2",
             display: "flex",
             justifyContent: "center",
             alignItems: "center",
@@ -69,7 +76,13 @@ export default function WaitingRoom() {
                 boxShadow: "0 8px 25px rgba(48,32,68,0.2)",
             }}>
                 <h1>GAMEPIGEON</h1>
-                <h2>{gameType === "wordhunt" ? "WORD HUNT" : "ANAGRAMS"}</h2>
+                <h2>
+                    {gameType === "wordhunt" 
+                        ? "WORD HUNT" 
+                        : gameType === "wordbites"
+                        ? "WORD BITES"
+                        : "ANAGRAMS"}
+                </h2>
                 <p>share this code with a friend:</p>
                 <h1 style={{
                     fontSize: "42px",

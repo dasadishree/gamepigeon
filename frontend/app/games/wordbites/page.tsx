@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
+import type { FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import styles from "./page.module.css";
 
@@ -127,7 +128,7 @@ export default function WordBitesPage() {
         }
     }
     
-    async function submitWord(event: React.FormEvent<HTMLFormElement>) {
+    async function submitWord(event: FormEvent<HTMLFormElement>) {
         event.preventDefault();
         if(!word.trim() || timeLeft <= 0) return;
         try {
@@ -227,6 +228,9 @@ export default function WordBitesPage() {
                             }`}
                             style={{
                                 gridRow: `${tile.row! + 1} / span ${
+                                    tile.orientation === "vertical" ? 2 : 1
+                                }`,
+                                gridColumn: `${tile.col! + 1} / span ${
                                     tile.orientation === "horizontal" ? 2 : 1
                                 }`,
                             }}
@@ -254,7 +258,7 @@ export default function WordBitesPage() {
                                 className={`${styles.tile} ${
                                     tile.orientation === "single"
                                         ? styles.singleTile
-                                        : styles.doubeTile
+                                        : styles.doubleTile
                                 }`}
                             >
                                 {tile.letters.toUpperCase()}
