@@ -22,7 +22,7 @@ type GameResults ={
 export default function ResultsPage(){
     const [results, setResults] = useState<GameResults | null>(null);
     const [playerId, setPlayerId] = useState("");
-    const [gameType, setGameType] = useState<"anagrams" | "wordhunt">("anagrams");
+    const [gameType, setGameType] = useState<"anagrams" | "wordhunt" | "wordbites">("anagrams");
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
 
@@ -32,7 +32,7 @@ export default function ResultsPage(){
             const gameId = params.get("gameId");
             const savedPlayerId = sessionStorage.getItem("playerId");
             const savedGameType = sessionStorage.getItem("gameType") || "anagrams";
-            setGameType(savedGameType as "anagrams" | "wordhunt");
+            setGameType(savedGameType as "anagrams" | "wordhunt" | "wordbites");
             if(!gameId || !savedPlayerId){
                 setError("Missing game information.");
                 setLoading(false);
@@ -42,17 +42,37 @@ export default function ResultsPage(){
             try{
                 let data;
                 while(true){
-                    const response=await fetch(
+                    const response = await fetch(
                         `${API_URL}/game/${savedGameType}/${gameId}/results`
                     );
                     data=await response.json();
-                    if (response.ok && data.success) {
-                        break;
+
+                    if(response.ok && data.success) {
+                        const hasYou = data.players.some(
+                            (player: PlayerResult) => player.player_id === savedPlayerId
+                        );
+                        const hasOpponent = data.players.some(
+                            (player: PlayerResult) => player.player_id !== savedPlayerId
+                        );
+                        if(hasYou && hasOpponent){
+                            break;
+                        }
+                        await new Promise((resolve) => setTimeout(resolve, 1000));
+                        continue;
                     }
-                    if(response.status!==400){
-                        throw new Error(data.detail || "Could not load results.");
+                    if(
+                        savedGameType==="wordbites" &&
+                        response.ok && 
+                        data.message === "Game is still in progress."
+                    ) {
+                        await new Promise((resolve) => setTimeout(resolve, 1000));
+                        continue;
                     }
-                    await new Promise((resolve) => setTimeout(resolve, 1000));
+                    if(response.status===400){
+                        await new Promise((resolve) => setTimeout(resolve, 1000));
+                        continue;
+                    }
+                    throw new Error(data.message || data.detail || "could not load results");
                 }
                 setResults(data);
             } catch(err){
@@ -86,7 +106,7 @@ export default function ResultsPage(){
     if(loading){
         return<main className={styles.page}>Loading results...</main>;
     }
-    if(error || !results || !yourResult || !opponentResult) {
+    if(error || !results || !yourResult) {
         return (
             <main className={styles.page}>
                 {error || "Could not find both players' results."}

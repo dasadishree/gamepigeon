@@ -57,13 +57,6 @@ class JoinGame(BaseModel):
     game_id: str
     player_id: str
 
-class MoveTile(BaseModel):
-    game_id: str
-    player_id: str
-    tile_id: str
-    row: int
-    col: int
-
 # join anagrams game
 @app.post("/game/anagrams/join")
 def join_game(join: JoinGame):
@@ -758,104 +751,6 @@ def check_wordbites_word(submission: WordSubmission):
         "word": word,
         "points": points,
         "total_score": player["score"]
-    }
-
-# move word bites tile
-@app.post("/game/wordbites/move")
-def move_wordbites_tile(move: MoveTile):
-    if move.game_id not in wordbites_games:
-        return{
-            "success": False,
-            "message": "Game not found"
-        }
-    game = wordbites_games[move.game_id]
-    if move.player_id not in game["players"]:
-        return{
-            "success": False,
-            "message": "You haven't joined this game."
-        }
-    if game["started_at"] is None:
-        return{
-            "success": False,
-            "message": "The game hasn't started yet."
-        }
-
-    if datetime.now() >= game["started_at"] + timedelta(
-        seconds=game["time_limit"]
-    ):
-        return{
-            "success": False,
-            "message": "Time's up!"
-        }
-    board=game["players"][move.player_id]["board"]
-
-    tile=next(
-        (
-            tile for tile in board["tiles"]
-            if tile["id"] == move.tile_id
-        ),
-        None
-    )
-
-    if tile is None:
-        return{
-            "success": False,
-            "message": "tile not found."
-        }
-    if tile["orientation"] =="horizontal":
-        new_cells=[
-            (move.row, move.col),
-            (move.row, move.col+1)
-        ]
-    elif tile["orientation"]=="vertical":
-        new_cells=[
-            (move.row, move.col),
-            (move.row+1, move.col)
-        ]
-    else:
-        new_cells=[(move.row, move.col)]
-
-    for row, col in new_cells:
-        if not(
-            0<=row<board["rows"]
-            and 0 <= col<board["cols"]
-        ):
-            return{
-                "success": False,
-                "message": "Tile is outside the board."
-            }
-        
-    for other_tile in board["tiles"]:
-        if other_tile["id"]==tile["id"]:
-            continue
-        if other_tile["row"] is None:
-            continue
-        if other_tile["orientation"] =="horizontal":
-            other_cells=[
-                (other_tile["row"], other_tile["col"]),
-                (other_tile["row"], other_tile["col"]+1)
-            ]
-        elif other_tile["orientation"]=="vertical":
-            other_cells=[
-                (other_tile["row"], other_tile["col"]),
-                (other_tile["row"]+1, other_tile["col"])
-            ]
-        else: 
-            other_cells=[
-                (other_tile["row"], other_tile["col"])
-            ]
-
-        if any(cell in other_cells for cell in new_cells):
-            return{
-                "success": False,
-                "message": "Those spaces are already occupied."
-            }
-    tile["row"] = move.row
-    tile["col"] = move.col
-    return {
-        "success": True,
-        "message": "Tile moved!",
-        "board": board
     }
 
 #word bites game results

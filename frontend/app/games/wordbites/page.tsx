@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useRef,useState } from "react";
 import { useRouter } from "next/navigation";
 import styles from "./page.module.css";
 
@@ -24,6 +24,7 @@ export default function WordBitesPage() {
     >([]);
     const [message, setMessage] = useState("");
     const [selectedPositions, setSelectedPositions] = useState<[number, number][]>([]);
+    const selectedPositionsRef = useRef<[number, number][]>([]);
     const [isSelecting, setIsSelecting] = useState(false);
     const [submitting, setSubmitting] = useState(false);
     useEffect(() => {
@@ -89,34 +90,37 @@ export default function WordBitesPage() {
 
     // wordbites selecti cells function
     function selectCell(row: number, col: number) {
-        if(timeLeft<=0 || submitting) return;
-        setSelectedPositions(previous => {
-            const alreadySelected = previous.some(
-                ([r,c]) => r === row && c === col
-            );
-            if(alreadySelected) return previous;
-            if(previous.length>0){
-                const[lastRow, lastCol] = previous[previous.length-1];
-                const isAdjacent = Math.abs(row-lastRow)<=1 && Math.abs(col-lastCol)<=1;
-                if(!isAdjacent) return previous;
-            }
-            return [...previous, [row, col]];
-        });
+        if(timeLeft <= 0 || submitting) return;
+        const previous = selectedPositionsRef.current;
+        if(previous.some(([r, c]) => r === row && c === col)) return;
+        if(previous.length>0){
+            const [lastRow, lastCol] = previous[previous.length-1];
+            const isAdjacent = Math.abs(row - lastRow) <= 1 && Math.abs(col - lastCol) <= 1;
+            if(!isAdjacent) return;
+        }
+        const updated = [...previous, [row, col] as [number, number]];
+        
+        selectedPositionsRef.current = updated;
+        setSelectedPositions(updated);
     }
+
     // drag
     async function finishSelection() {
-        if(!board || selectedPositions.length<3 || submitting){
+        const positions = selectedPositionsRef.current;
+        if(!board || positions.length<3 || submitting || timeLeft<=0) {
+            selectedPositionsRef.current = [];
             setSelectedPositions([]);
             setIsSelecting(false);
             return;
         }
-        const selectedWord = selectedPositions
-            .map(([row,col]) => board.grid[row][col])
+        const selectedWord = positions
+            .map(([row, col]) => board.grid[row][col])
             .join("")
             .toLowerCase();
-        setIsSelecting(false);
+        selectedPositionsRef.current = [];
         setSelectedPositions([]);
-        await checkWord(selectedWord, selectedPositions);
+        setIsSelecting(false);
+        await checkWord(selectedWord, positions);
     }
     
     // check submitted/selected words
@@ -210,6 +214,19 @@ export default function WordBitesPage() {
                 <div 
                     className={styles.board}
                     onPointerUp={finishSelection}
+                    onPointerCancel={finishSelection}
+                    onPointerMove={event => {
+                        if(!isSelecting) return;
+                        const element = document.elementFromPoint(
+                            event.clientX,
+                            event.clientY
+                        );
+                        const cell = element?.closest("[data-row][data-col]");
+                        if(!cell) return;
+                        const row = Number(cell.getAttribute("data-row"));
+                        const col=Number(cell.getAttribute("data-col"));
+                        selectCell(row, col);
+                    }}
                 >
                     {board.grid.map((rowLetters, row) => rowLetters.map((letter, col) => {
                         const isSelected = selectedPositions.some(
@@ -219,17 +236,17 @@ export default function WordBitesPage() {
                             <button
                                 key={`${row}-${col}`}
                                 type="button"
+                                data-row={row}
+                                data-col={col}
                                 className={`${styles.boardCell} ${
                                     isSelected ? styles.selectedCell : ""
                                 }`}
                                 onPointerDown={event=> {
                                     event.preventDefault();
+                                    selectedPositionsRef.current = [];
                                     setSelectedPositions([]);
                                     setIsSelecting(true);
                                     selectCell(row, col);
-                                }}
-                                onPointerEnter={()=>{
-                                    if(isSelecting) selectCell(row,col);
                                 }}
                             >
                                 {letter.toUpperCase()}
