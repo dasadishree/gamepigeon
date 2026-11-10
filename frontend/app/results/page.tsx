@@ -115,7 +115,10 @@ export default function ResultsPage(){
     }
 
     return(
-        <main className={`${styles.page} ${gameType === "wordhunt" ? styles.wordhunt : ""}`}>
+        <main className={`${styles.page} ${
+            gameType === "wordhunt" ? styles.wordhunt :
+            gameType === "wordbites" ? styles.wordbites : ""
+        }`}>
 
             <div className={styles.players}>
                 <section 

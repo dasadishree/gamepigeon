@@ -18,22 +18,6 @@
     align-items: center;
     gap: 22px;
 }
-.header{
-    text-align: center;
-    margin-top: 35px;
-}
-.header h1{
-    font-size: clamp(32px, 6vw, 48px);
-    font-weight: 900;
-    letter-spacing: 3px;
-    margin: 0;
-    color: #174b7a;
-}
-.header p{
-    font-size: 15px;
-    font-weight: bold;
-    margin-top: 8px;
-}
 .timer{
     position: absolute;
     top: 25px;
@@ -52,33 +36,6 @@
     font-size: 29px;
     font-weight: 900;
 }
-.stats{
-    width: 100%;
-    display: flex;
-    justify-content: center;
-    gap: 18px;
-}
-.statCard{
-    background: white;
-    border-radius: 15px;
-    padding: 15px 30px;
-    min-width: 125px;
-    display: flex;
-    flex-direction: column; 
-    align-items: center;
-    gap: 5px;
-    box-shadow: 0 5px 12px rgba(25,65,100,0.14);
-}
-.statCard span{
-    font-size: 12px;
-    font-weight: 900;
-    letter-spacing: 1px;
-    color: #64809b;
-}
-.statCard strong{
-    font-size: 30px;
-    color: #174b7a;
-}
 .board{
     width: 100%;
     max-width: 560px;
@@ -92,15 +49,17 @@
     grid-template-columns: repeat(9, minmax(0, 1fr));
     grid-template-rows: repeat(9, minmax(0, 1fr));
     gap: 5px;
-    box-shadow: 0 8px 16px rgba(20, 55, 90, 0.2);
+    box-shadow: 
+        0 8px 0px #123b61,
+        0 12px 22px rgba(20, 55, 90, 0.2);
     touch-action: none;
     user-select: none;
 }
 .boardCell{
-    background: rgba(255,255,255,0.75);
-    color: #174b7a;
-    border: 1px solid rgba(50,105,155,0.2);
-    border-radius: 6px;
+    background: #bf8b5a;
+    color: #fff;
+    border: none;
+    border-radius: 7px;
     min-width: 0;
     min-height: 0;
     padding: 0;
@@ -113,9 +72,15 @@
     user-select: none;
     -webkit-user-select: none;
     touch-action: none;
+    box-shadow:
+        inset 0 3px 0 rgba(255,255,255,0.2),
+        inset 0 -4px 0 rgba(80,45,20,0.2),
+        0 3px 5px rgba(70,45,35,0.2);
+    transition: transform 0.08s ease, filter 0.1s ease;
 }
 .boardCell:active{
-    background: #b6d5f3;
+    filter: brightness(1.1);
+    transform: scale(0.96);
 }
 .selectedCell{
     background: #3984c5;
@@ -188,20 +153,59 @@
     .gameContainer{
         gap: 16px; 
     }
-    .header{
-        margin-top: 45px;
-    }
     .board{
         gap: 3px;
         padding: 6px;
         border-width: 5px;
     }
-    .stats{
-        gap: 10px;
-    }
-    .statCard{
-        min-width: 0;
-        flex: 1;
-        padding: 12px;
-    }
+}
+
+.scorePaper{
+    width: 100%;
+    max-width: 330px;
+    min-height: 105px;
+    background: #fffdf5;
+    color: #183653;
+    padding: 20px 28px;
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    gap: 15px;
+    clip-path: polygon(
+        0% 3%, 8% 1%, 16% 3%, 24% 1%,
+        32% 3%, 40% 1%, 48% 3%, 56% 1%,
+        64% 3%, 72% 1%, 80% 3%, 88% 1%,
+        100% 3%, 99% 15%, 100% 27%,
+        98% 39%, 100% 51%, 98% 63%,
+        100% 75%, 98% 87%, 100% 97%,
+        88% 99%, 76% 97%, 64% 99%,
+        52% 97%, 40% 99%, 28% 97%,
+        16% 99%, 0% 97%, 2% 85%,
+        0% 73%, 2% 61%, 0% 49%,
+        2% 37%, 0% 25%
+    );
+    filter: drop-shadow(3px 5px 2px rgba(24,54,83,0.18));
+}
+.scoreItem{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+}
+.scoreItem span{
+    font-size: 12px;
+    font-weight: 900;
+    letter-spacing: 2px;
+    color: #64809b;
+}
+.scoreItem strong{
+    font-size: 32px;
+    font-weight: 900;
+    color: #174b7a;
+}
+.scoreDivider{
+    width: 2px;
+    height: 48px;
+    background: #d5dce4;
 }

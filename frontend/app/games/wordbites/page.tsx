@@ -19,9 +19,6 @@ export default function WordBitesPage() {
     const [endTime, setEndTime] = useState<number | null>(null);
     const [score, setScore] = useState(0);
     const [wordsFound, setWordsFound] = useState(0);
-    const [foundWords, setFoundWords] = useState<
-        {word: string; points: number}[]
-    >([]);
     const [message, setMessage] = useState("");
     const [selectedPositions, setSelectedPositions] = useState<[number, number][]>([]);
     const selectedPositionsRef = useRef<[number, number][]>([]);
@@ -63,7 +60,6 @@ export default function WordBitesPage() {
                 setBoard(data.board);
                 setScore(data.score);
                 setWordsFound(data.words.length);
-                setFoundWords(data.word_details ?? []);
                 const gameEndTime = new Date(data.started_at).getTime() + data.time_limit *1000;
                 setEndTime(gameEndTime);
                 setTimeLeft(Math.max(0, Math.ceil((gameEndTime-Date.now())/1000)));
@@ -146,13 +142,6 @@ export default function WordBitesPage() {
             if(data.valid){
                 setScore(data.total_score);
                 setWordsFound(previous => previous+1);
-                setFoundWords(previous => [
-                    ...previous,
-                    {
-                        word: data.word.toUpperCase(),
-                        points: data.points,
-                    },
-                ]);
                 setMessage(`${data.word.toUpperCase()} + ${data.points}`);
             } else {
                 setMessage(data.message);
@@ -180,33 +169,16 @@ export default function WordBitesPage() {
             </div>
 
             <div className={styles.gameContainer}>
-                <header className={styles.header}>
-                    <h1>WORD BITES</h1>
-                </header>
-                <div className={styles.stats}>
-                    <div className={styles.statCard}>
+                <div className={styles.scorePaper}>
+                    <div className={styles.scoreItem}>
+                        <span>WORDS</span>
+                        <strong>{wordsFound}</strong>
+                    </div>
+                    <div className={styles.scoreDivider}></div>
+                    <div className={styles.scoreItem}>
                         <span>SCORE</span>
                         <strong>{score}</strong>
                     </div>
-                    <div className={styles.statCard}>
-                        <span>WORDS FOUND</span>
-                        <strong>{wordsFound}</strong>
-                    </div>
-                </div>
-                <div className={styles.foundWords}>
-                    <h2>FOUND WORDS</h2>
-                    {foundWords.length === 0 ? (
-                        <p>No words found yet.</p>
-                    ) : (
-                        <ul>
-                            {foundWords.map((item, index) => (
-                                <li key={`${item.word}-${index}`}>
-                                    <span>{item.word}</span>
-                                    <strong>+{item.points}</strong>
-                                </li>
-                            ))}
-                        </ul>
-                    )}
                 </div>
                 {message && (
                     <p className={styles.message}>{message}</p>
@@ -255,11 +227,6 @@ export default function WordBitesPage() {
                     })
                 )}
             </div>
-
-                <p className={styles.instructions}>
-                    Drag across adjacent letters to find words. Words can go in any direction!
-                </p>
-
             </div>
         </main>
     );
