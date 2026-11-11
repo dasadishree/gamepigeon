@@ -2,7 +2,7 @@
 import {useState} from "react";
 import {useRouter} from "next/navigation";
 
-const API_URL = "http://127.0.0.1:8000";
+const API_URL = "https://gamepigeon-svxj.vercel.app";
 
 export default function LobbyPage() {
     const [joinCode, setJoinCode] = useState("");

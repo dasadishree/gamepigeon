@@ -1,7 +1,7 @@
 "use client";
 import {useEffect,useState} from "react";
 import styles from "./page.module.css";
-const API_URL = "http://127.0.0.1:8000";
+const API_URL = "https://gamepigeon-svxj.vercel.app";
 
 type Word ={
     word: string;

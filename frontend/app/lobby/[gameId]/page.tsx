@@ -3,7 +3,7 @@
 import {useEffect, useState} from "react";
 import { useParams, useRouter} from "next/navigation";
 
-const API_URL = "http://127.0.0.1:8000";
+const API_URL = "https://gamepigeon-svxj.vercel.app";
 export default function WaitingRoom() {
     const params = useParams();
     const router = useRouter();
