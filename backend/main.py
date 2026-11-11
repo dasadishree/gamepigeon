@@ -5,6 +5,9 @@ import random
 import uuid
 from datetime import datetime, timedelta
 from fastapi.middleware.cors import CORSMiddleware
+import os
+import json
+from upstash_redis import Redis
 
 app = FastAPI()
 app.add_middleware(
@@ -20,9 +23,54 @@ SIX_LETTER_WORDS = [
     if len(word) == 6 and word.isalpha()
 ]
 
+# local fallback
 games={}
 wordhunt_games = {}
 wordbites_games={}
+
+# upstash redis
+redis_url = os.getenv("UPSTASH_REDIS_REST_URL")
+redis_token = os.getenv("UPSTASH_REDIS_REST_TOKEN")
+redis_client = (
+    Redis(url=redis_url, token=redis_token)
+    if redis_url and redis_token
+    else None
+)
+
+def save_game(game_type, game_id, game):
+    if redis_client:
+        key=f"{game_type}:{game_id}"
+        redis_client.set(
+            key,
+            json.dumps(game, default=lambda value: value.isoformat()),
+            ex=86400
+        )
+    else:
+        local_stores = {
+            "anagrams": games,
+            "wordhunt": wordhunt_games,
+            "wordbites": wordbites_games
+        }
+        local_stores[game_type][game_id] = game
+
+def get_game(game_type, game_id):
+    if redis_client:
+        key=f"{game_type}:{game_id}"
+        stored_game = redis_client.get(key)
+        if stored_game is None:
+            return None
+        game = json.loads(stored_game)
+        if game["started_at"] is not None:
+            game["started_at"] = datetime.fromisoformat(
+                game["started_at"]
+            )
+        return game
+    local_stores = {
+        "anagrams": games,
+        "wordhunt": wordhunt_games,
+        "wordbites": wordbites_games
+    }
+    return local_stores[game_type].get(game_id)
 
 @app.get("/")
 def home():
@@ -34,13 +82,14 @@ def new_anagram_game():
     letters=  list(word)
     random.shuffle(letters)
     game_id=str(uuid.uuid4())[:6]
-    games[game_id]={
+    game ={
         "answer": word,
         "letters": letters,
         "time_limit": 60,
         "started_at": None,
         "players": {}
     }
+    save_game("anagrams", game_id, game)
     return {
         "game_id": game_id,
         "letters": letters,
@@ -60,12 +109,12 @@ class JoinGame(BaseModel):
 # join anagrams game
 @app.post("/game/anagrams/join")
 def join_game(join: JoinGame):
-    if join.game_id not in games:
+    game = get_game("anagrams", join.game_id)
+    if game is None:
         return{
             "success": False,
             "message": "Game not found."
         }
-    game = games[join.game_id]
     if join.player_id in game["players"]:
         return{
             "success": True,
@@ -86,6 +135,7 @@ def join_game(join: JoinGame):
     }
     if len(game["players"])==2:
         game["started_at"]=datetime.now()
+    save_game("anagrams", join.game_id, game)
     return{
         "success": True,
         "message": "Joined game!",
@@ -98,12 +148,12 @@ def join_game(join: JoinGame):
 # gamestatus endpoint
 @app.get("/game/anagrams/{game_id}/status")
 def get_game_status(game_id: str):
-    if game_id not in games:
+    game = get_game("anagrams", game_id)
+    if game is None:
         return{
             "success": False,
             "message": "Game not found."
         }
-    game=games[game_id]
     if game["started_at"] is None:
         status="waiting"
     elif datetime.now()>=game["started_at"]+timedelta(
@@ -128,12 +178,12 @@ def get_game_status(game_id: str):
 #getgsmeresults
 @app.get("/game/anagrams/{game_id}/results")
 def get_game_results(game_id: str):
-    if game_id not in games:
+    game = get_game("anagrams", game_id)
+    if game is None:
         return{
             "success": False,
             "message": "Game not found."
         }
-    game=games[game_id]
 
     if game["started_at"] is None:
         return{
@@ -168,14 +218,14 @@ def get_game_results(game_id: str):
 # check word and score
 @app.post("/game/anagrams/check")
 def check_word(submission: WordSubmission):
-    if submission.game_id not in games:
+    game = get_game("anagrams", submission.game_id)
+    if game is None:
         return{
             "valid": False,
             "message": "Game not found.",
             "points": 0
         }
 
-    game = games[submission.game_id]
     if game["started_at"] is None:
         return{
             "valid": False,
@@ -218,6 +268,7 @@ def check_word(submission: WordSubmission):
     points = calculate_score(word)
     player["words"].append(word)
     player["score"]+=points
+    save_game("anagrams", submission.game_id, game)
     return{
         "valid": True,
         "word": word,
@@ -287,12 +338,13 @@ def generate_wordhunt_board():
 def new_wordhunt_game():
     board=generate_wordhunt_board()
     game_id = str(uuid.uuid4())[:6]
-    wordhunt_games[game_id] = {
+    game = {
         "board": board,
         "time_limit": 60,
         "started_at": None,
         "players": {}
     }
+    save_game("wordhunt", game_id, game)
     return{
         "game_id": game_id,
         "board": board,
@@ -302,12 +354,12 @@ def new_wordhunt_game():
 #join word hunt game
 @app.post("/game/wordhunt/join")
 def join_wordhunt_game(join: JoinGame):
-    if join.game_id not in wordhunt_games:
+    game =get_game("wordhunt", join.game_id)
+    if game is None:
         return{
             "success": False,
             "message": "Game not found."
         }
-    game = wordhunt_games[join.game_id]
     if join.player_id in game["players"]:
         return{
             "success": True,
@@ -327,6 +379,7 @@ def join_wordhunt_game(join: JoinGame):
     }
     if len(game["players"]) == 2:
         game["started_at"] = datetime.now()
+    save_game("wordhunt", join.game_id, game)
 
     return{
         "success": True,
@@ -343,12 +396,12 @@ def join_wordhunt_game(join: JoinGame):
 # word hunt game status
 @app.get("/game/wordhunt/{game_id}/status")
 def get_wordhunt_status(game_id: str):
-    if game_id not in wordhunt_games:
+    game = get_game("wordhunt", game_id)
+    if game is None:
         return{
             "success": False,
             "message": "Game not found."
         }
-    game=wordhunt_games[game_id]
 
     if game["started_at"] is None:
         status = "waiting"
@@ -374,13 +427,13 @@ def get_wordhunt_status(game_id: str):
 #word hunt check word and score
 @app.post("/game/wordhunt/check")
 def check_wordhunt_word(submission: WordSubmission):
-    if submission.game_id not in wordhunt_games:
+    game = get_game("wordhunt", submission.game_id)
+    if game is None:
         return{
             "valid": False,
             "message": "Game not found",
             "points": 0
         }
-    game=wordhunt_games[submission.game_id]
     if game["started_at"] is None:
         return{
             "valid": False,
@@ -424,6 +477,7 @@ def check_wordhunt_word(submission: WordSubmission):
     points = calculate_score(word)
     player["words"].append(word)
     player["score"] += points
+    save_game("wordhunt", submission.game_id, game)
 
     return{
         "valid": True,
@@ -435,12 +489,13 @@ def check_wordhunt_word(submission: WordSubmission):
 # word hunt game results
 @app.get("/game/wordhunt/{game_id}/results")
 def get_wordhunt_results(game_id: str):
-    if game_id not in wordhunt_games:
+    game = get_game("wordhunt", game_id)
+    if game is None:
         return{
             "success": False,
             "message": "Game not found."
         }
-    game=wordhunt_games[game_id]
+
     if game["started_at"] is None:
         return{
             "success": False,
@@ -531,12 +586,13 @@ def generate_wordbites_board():
 def new_wordbites_game():
     board = generate_wordbites_board()
     game_id=str(uuid.uuid4())[:6]
-    wordbites_games[game_id]={
+    game={
         "board": board,
         "time_limit": 60,
         "started_at": None,
         "players": {}
     }
+    save_game("wordbites", game_id, game)
     return{
         "game_id": game_id,
         "board": board,
@@ -546,12 +602,12 @@ def new_wordbites_game():
 # join word bites game
 @app.post("/game/wordbites/join")
 def join_wordbites_game(join: JoinGame):
-    if join.game_id not in wordbites_games:
+    game = get_game("wordbites", join.game_id)
+    if game is None:
         return{
             "success": False,
             "message": "game not found"
         }
-    game=wordbites_games[join.game_id]
     if join.player_id in game["players"]:
         return{
             "success": True,
@@ -581,6 +637,7 @@ def join_wordbites_game(join: JoinGame):
 
     if len(game["players"])==2:
         game["started_at"]=datetime.now()
+    save_game("wordbites", join.game_id, game)
 
     return {
         "success": True,
@@ -597,12 +654,12 @@ def join_wordbites_game(join: JoinGame):
 # word bites game status
 @app.get("/game/wordbites/{game_id}/status")
 def get_wordbites_status(game_id: str, player_id: str):
-    if game_id not in wordbites_games:
+    game = get_game("wordbites", game_id)
+    if game is None:
         return{
             "success": False,
             "message": "Game not found."
         }
-    game=wordbites_games[game_id]
     if player_id not in game["players"]:
         return {
             "success": False,
@@ -682,13 +739,13 @@ def calculate_wordbites_score(word):
 # check and score word bites
 @app.post("/game/wordbites/check")
 def check_wordbites_word(submission: WordSubmission):
-    if submission.game_id not in wordbites_games:
+    game = get_game("wordbites", submission.game_id)
+    if game is None:
         return{
             "valid": False,
             "message": "Game not found",
             "points": 0
         }
-    game=wordbites_games[submission.game_id]
     if game["started_at"] is None:
         return{
             "valid": False,
@@ -746,6 +803,7 @@ def check_wordbites_word(submission: WordSubmission):
     points = calculate_wordbites_score(word)
     player["words"].append(word)
     player["score"]+= points
+    save_game("wordbites", submission.game_id, game)
     return{
         "valid": True,
         "word": word,
@@ -756,12 +814,12 @@ def check_wordbites_word(submission: WordSubmission):
 #word bites game results
 @app.get("/game/wordbites/{game_id}/results")
 def get_wordbites_results(game_id: str):
-    if game_id not in wordbites_games:
+    game = get_game("wordbites", game_id)
+    if game is None:
         return{
             "success": False,
             "message": "Game not found"
         }
-    game=wordbites_games[game_id]
     if game["started_at"] is None:
         return{
             "success": False,
